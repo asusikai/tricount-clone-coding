@@ -24,9 +24,25 @@ class _AuthPageState extends State<AuthPage> {
 
   Future<void> _signInWithProvider(OAuthProvider provider) async {
     try {
+      String redirectUrl;
+
+      switch (provider) {
+        case OAuthProvider.google:
+          redirectUrl = 'tricount://auth/google';
+          break;
+        case OAuthProvider.apple:
+          redirectUrl = 'tricount://auth/apple';
+          break;
+        case OAuthProvider.kakao:
+          redirectUrl = 'tricount://auth/kakao';
+          break;
+        default:
+          redirectUrl = 'tricount://auth/google';
+      }
+
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
-        redirectTo: 'io.supabase.tricount://login-callback',
+        redirectTo: redirectUrl,
       );
     } catch (e) {
       if (mounted) {

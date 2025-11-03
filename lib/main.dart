@@ -30,80 +30,39 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _handleKakaoDeepLink(_appLinks);
-    _handleGoogleDeepLink(_appLinks);
-    _handleAppleDeepLink(_appLinks);
+    _handleDeepLinks();
   }
 
-  void _handleKakaoDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'kakao',
-      ),
-    );
-  }
-
-  void _handleGoogleDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'google',
-      ),
-    );
-  }
-
-  void _handleAppleDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'apple',
-      ),
-    );
-  }
-
-  void _listenForProviderDeepLinks({
-    required AppLinks appLinks,
-    required bool Function(Uri uri) validator,
-  }) {
-    appLinks.getInitialLink().then((uri) {
-      if (uri != null && validator(uri)) {
-        Supabase.instance.client.auth.getSessionFromUrl(uri);
-      }
+  void _handleDeepLinks() {
+    // 앱이 종료된 상태에서 딥링크로 열린 경우
+    _appLinks.getInitialLink().then((uri) {
+      if (uri != null) _processAuthRedirect(uri);
     });
 
-    appLinks.uriLinkStream.listen((uri) {
-      if (validator(uri)) {
-        Supabase.instance.client.auth.getSessionFromUrl(uri);
-      }
+    // 앱이 실행 중일 때 딥링크 수신
+    _appLinks.uriLinkStream.listen((uri) {
+      _processAuthRedirect(uri);
     });
   }
+  Future<void> _processAuthRedirect(Uri uri) async {
+    debugPrint('Received URI: $uri');
 
-  bool _matchesProvider(
-    Uri uri, {
-    required String expectedScheme,
-    required String expectedHost,
-    required String provider,
-  }) {
-    if (uri.scheme != expectedScheme) {
-      return false;
-    }
-    if (uri.host != expectedHost) {
-      return false;
-    }
+    // scheme, host 일치 검사
+    if (uri.scheme != 'tricount' || uri.host != 'auth') return;
 
-    return uri.queryParameters['provider'] == provider;
+    // path를 통해 provider 구분
+    final path = uri.path.toLowerCase();
+
+    if ((path == '/google' || path == '/apple' || path == '/kakao') &&
+        uri.queryParameters.containsKey('code')) {
+      try {
+        await Supabase.instance.client.auth.getSessionFromUrl(uri);
+        debugPrint('✅ Auth session restored for $path');
+      } catch (e) {
+        debugPrint('❌ Auth redirect failed: $e');
+      }
+    }
   }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
