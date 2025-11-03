@@ -24,6 +24,31 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- ✅ Google OAuth Redirect -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tricount" android:host="auth" android:path="/google" />
+            </intent-filter>
+
+            <!-- ✅ Apple OAuth Redirect -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tricount" android:host="auth" android:path="/apple" />
+            </intent-filter>
+
+            <!-- ✅ Kakao OAuth Redirect -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tricount" android:host="auth" android:path="/kakao" />
+            </intent-filter>
+
             <!-- Deep link for custom scheme (Supabase) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
