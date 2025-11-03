@@ -55,6 +55,14 @@
           <string>io.supabase.tricount</string>
         </array>
       </dict>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>tricount-auth</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>tricount</string>
+        </array>
+      </dict>
     </array>
 
 </dict>

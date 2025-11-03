@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,43 +27,65 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _appLinks = AppLinks();
+  final AppLinks _appLinks = AppLinks();
+  final Set<String> _handledAuthUris = <String>{};
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
-    _handleDeepLinks();
+    _listenToDeepLinks();
   }
 
-  void _handleDeepLinks() {
-    // 앱이 종료된 상태에서 딥링크로 열린 경우
-    _appLinks.getInitialLink().then((uri) {
-      if (uri != null) _processAuthRedirect(uri);
-    });
+  Future<void> _listenToDeepLinks() async {
+    final Uri? initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) {
+      unawaited(_handleAuthCallback(initialUri));
+    }
 
-    // 앱이 실행 중일 때 딥링크 수신
-    _appLinks.uriLinkStream.listen((uri) {
-      _processAuthRedirect(uri);
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      unawaited(_handleAuthCallback(uri));
     });
   }
   Future<void> _processAuthRedirect(Uri uri) async {
     debugPrint('Received URI: $uri');
 
-    // scheme, host 일치 검사
-    if (uri.scheme != 'tricount' || uri.host != 'auth') return;
-
-    // path를 통해 provider 구분
-    final path = uri.path.toLowerCase();
-
-    if ((path == '/google' || path == '/apple' || path == '/kakao') &&
-        uri.queryParameters.containsKey('code')) {
-      try {
-        await Supabase.instance.client.auth.getSessionFromUrl(uri);
-        debugPrint('✅ Auth session restored for $path');
-      } catch (e) {
-        debugPrint('❌ Auth redirect failed: $e');
-      }
+  Future<void> _handleAuthCallback(Uri uri) async {
+    if (!_isSupportedAuthCallback(uri)) {
+      return;
     }
+
+    final String rawUri = uri.toString();
+    if (_handledAuthUris.contains(rawUri)) {
+      return;
+    }
+    _handledAuthUris.add(rawUri);
+
+    try {
+      await Supabase.instance.client.auth.getSessionFromUrl(uri);
+    } catch (error) {
+      debugPrint('Failed to handle auth callback for $rawUri: $error');
+      _handledAuthUris.remove(rawUri);
+    }
+  }
+
+  bool _isSupportedAuthCallback(Uri uri) {
+    if (uri.scheme != 'tricount' || uri.host != 'auth') {
+      return false;
+    }
+
+    final String? provider = uri.pathSegments.isNotEmpty
+        ? uri.pathSegments.last
+        : uri.queryParameters['provider'];
+
+    return provider != null &&
+        const {'kakao', 'google', 'apple'}.contains(provider.toLowerCase());
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
   @override
   Widget build(BuildContext context) {

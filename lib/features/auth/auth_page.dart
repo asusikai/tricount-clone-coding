@@ -42,7 +42,7 @@ class _AuthPageState extends State<AuthPage> {
 
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
-        redirectTo: redirectUrl,
+        redirectTo: 'tricount://auth/${provider.name}',
       );
     } catch (e) {
       if (mounted) {
