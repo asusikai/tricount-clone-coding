@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,83 +27,63 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _appLinks = AppLinks();
+  final AppLinks _appLinks = AppLinks();
+  final Set<String> _handledAuthUris = <String>{};
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
     super.initState();
-    _handleKakaoDeepLink(_appLinks);
-    _handleGoogleDeepLink(_appLinks);
-    _handleAppleDeepLink(_appLinks);
+    _listenToDeepLinks();
   }
 
-  void _handleKakaoDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'kakao',
-      ),
-    );
-  }
+  Future<void> _listenToDeepLinks() async {
+    final Uri? initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) {
+      unawaited(_handleAuthCallback(initialUri));
+    }
 
-  void _handleGoogleDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'google',
-      ),
-    );
-  }
-
-  void _handleAppleDeepLink(AppLinks appLinks) {
-    _listenForProviderDeepLinks(
-      appLinks: appLinks,
-      validator: (uri) => _matchesProvider(
-        uri,
-        expectedScheme: 'tricount',
-        expectedHost: 'auth',
-        provider: 'apple',
-      ),
-    );
-  }
-
-  void _listenForProviderDeepLinks({
-    required AppLinks appLinks,
-    required bool Function(Uri uri) validator,
-  }) {
-    appLinks.getInitialLink().then((uri) {
-      if (uri != null && validator(uri)) {
-        Supabase.instance.client.auth.getSessionFromUrl(uri);
-      }
-    });
-
-    appLinks.uriLinkStream.listen((uri) {
-      if (validator(uri)) {
-        Supabase.instance.client.auth.getSessionFromUrl(uri);
-      }
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      unawaited(_handleAuthCallback(uri));
     });
   }
 
-  bool _matchesProvider(
-    Uri uri, {
-    required String expectedScheme,
-    required String expectedHost,
-    required String provider,
-  }) {
-    if (uri.scheme != expectedScheme) {
-      return false;
+  Future<void> _handleAuthCallback(Uri uri) async {
+    if (!_isSupportedAuthCallback(uri)) {
+      return;
     }
-    if (uri.host != expectedHost) {
+
+    final String rawUri = uri.toString();
+    if (_handledAuthUris.contains(rawUri)) {
+      return;
+    }
+    _handledAuthUris.add(rawUri);
+
+    try {
+      await Supabase.instance.client.auth.getSessionFromUrl(uri);
+    } catch (error) {
+      debugPrint('Failed to handle auth callback for $rawUri: $error');
+      _handledAuthUris.remove(rawUri);
+    }
+  }
+
+  bool _isSupportedAuthCallback(Uri uri) {
+    if (uri.scheme != 'tricount' || uri.host != 'auth') {
       return false;
     }
 
-    return uri.queryParameters['provider'] == provider;
+    final String? provider = uri.pathSegments.isNotEmpty
+        ? uri.pathSegments.last
+        : uri.queryParameters['provider'];
+
+    return provider != null &&
+        const {'kakao', 'google', 'apple'}.contains(provider.toLowerCase());
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
   }
 
   @override
