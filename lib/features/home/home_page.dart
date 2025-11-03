@@ -17,7 +17,7 @@ class HomePage extends StatelessWidget {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await Supabase.instance.client.auth.signOut();
-              context.go('/auth');
+              if (context.mounted) context.go('/splash');
             },
           ),
         ],

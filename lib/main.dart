@@ -47,6 +47,8 @@ class _MyAppState extends State<MyApp> {
       unawaited(_handleAuthCallback(uri));
     });
   }
+  Future<void> _processAuthRedirect(Uri uri) async {
+    debugPrint('Received URI: $uri');
 
   Future<void> _handleAuthCallback(Uri uri) async {
     if (!_isSupportedAuthCallback(uri)) {
@@ -85,7 +87,6 @@ class _MyAppState extends State<MyApp> {
     _linkSubscription?.cancel();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
