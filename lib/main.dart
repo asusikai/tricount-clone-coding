@@ -47,6 +47,8 @@ class _MyAppState extends State<MyApp> {
       unawaited(_handleAuthCallback(uri));
     });
   }
+  Future<void> _processAuthRedirect(Uri uri) async {
+    debugPrint('Received URI: $uri');
 
   Future<void> _handleAuthCallback(Uri uri) async {
     if (!_isSupportedAuthCallback(uri)) {
@@ -60,8 +62,7 @@ class _MyAppState extends State<MyApp> {
     _handledAuthUris.add(rawUri);
 
     try {
-      await Supabase.instance.client.auth
-          .getSessionFromUrl(uri, flowType: AuthFlowType.pkce);
+      await Supabase.instance.client.auth.getSessionFromUrl(uri);
     } catch (error) {
       debugPrint('Failed to handle auth callback for $rawUri: $error');
       _handledAuthUris.remove(rawUri);
@@ -86,7 +87,6 @@ class _MyAppState extends State<MyApp> {
     _linkSubscription?.cancel();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
