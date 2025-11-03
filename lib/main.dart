@@ -49,6 +49,7 @@ class _MyAppState extends State<MyApp> {
   }
   Future<void> _processAuthRedirect(Uri uri) async {
     debugPrint('Received URI: $uri');
+  }
 
   Future<void> _handleAuthCallback(Uri uri) async {
     if (!_isSupportedAuthCallback(uri)) {
