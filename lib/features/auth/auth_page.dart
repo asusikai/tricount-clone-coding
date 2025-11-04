@@ -1,26 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AuthPage extends StatefulWidget {
+import '../../common/services/auth_service.dart';
+
+class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key});
 
   @override
-  State<AuthPage> createState() => _AuthPageState();
+  ConsumerState<AuthPage> createState() => _AuthPageState();
 }
 
-class _AuthPageState extends State<AuthPage> {
+class _AuthPageState extends ConsumerState<AuthPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 페이지 진입 시 저장된 에러 메시지 확인 및 표시
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final error = AuthService.lastAuthError;
+      if (error != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: '확인',
+              onPressed: () {},
+            ),
+          ),
+        );
+        // 에러 메시지 표시 후 초기화
+        AuthService.clearAuthError();
+      }
+    });
+  }
+
   Future<void> _signInWithProvider(OAuthProvider provider) async {
+    // 에러 메시지 초기화
+    AuthService.clearAuthError();
+    
     try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        provider,
-        redirectTo: 'tricount://auth/${provider.name}',
-      );
-      // 로그인 후 Supabase가 리디렉션으로 앱을 다시 열면,
-      // SplashPage에서 세션 상태를 감지하여 화면 이동을 처리함.
-    } catch (e) {
+      await ref.read(authServiceProvider).signInWithProvider(provider);
+      // 로그인 성공 시 콜백에서 시간이 초기화됨
+    } catch (e, stackTrace) {
+      debugPrint('로그인 실패: $e');
+      debugPrint('스택 트레이스: $stackTrace');
+      // 로그인 실패 시 시간 초기화 (AuthService에서도 처리되지만 확실히 하기 위해)
+      AuthService.clearSignInAttemptTime();
       if (!context.mounted || !mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
+        SnackBar(
+          content: Text('로그인에 실패했습니다: $e'),
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }
@@ -64,10 +97,21 @@ class _AuthPageState extends State<AuthPage> {
               const SizedBox(height: 24),
               TextButton(
                 onPressed: () async {
-                  await Supabase.instance.client.auth.signOut();
-                  if (!mounted || !context.mounted) return;
-                  // 게스트 로그인 시 다음 화면으로 이동 (SplashPage가 세션 확인)
-                  Navigator.of(context).pushReplacementNamed('/home');
+                  try {
+                    await ref.read(authServiceProvider).signOut();
+                    if (!mounted || !context.mounted) return;
+                    context.go('/home');
+                  } catch (e, stackTrace) {
+                    debugPrint('로그아웃 실패: $e');
+                    debugPrint('스택 트레이스: $stackTrace');
+                    if (!mounted || !context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('로그아웃 중 오류가 발생했습니다: $e'),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 },
                 child: const Text('Skip (Guest)'),
               ),
