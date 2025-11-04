@@ -36,6 +36,8 @@ class _MyAppState extends State<MyApp> {
   final AppLinks _appLinks = AppLinks();
   final Set<String> _handledAuthUris = <String>{};
   StreamSubscription<Uri>? _linkSubscription;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -97,7 +99,7 @@ class _MyAppState extends State<MyApp> {
         debugPrint('그룹 가입 성공: $groupId');
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          _scaffoldMessengerKey.currentState?.showSnackBar(
             const SnackBar(
               content: Text('그룹에 가입되었습니다.'),
               duration: Duration(seconds: 2),
@@ -111,7 +113,7 @@ class _MyAppState extends State<MyApp> {
       debugPrint('스택 트레이스: $stackTrace');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(
             content: Text('그룹 가입 실패: $error'),
             duration: const Duration(seconds: 3),
@@ -302,6 +304,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp.router(
       title: 'Tricount Clone',
       theme: ThemeData.light(),
+      scaffoldMessengerKey: _scaffoldMessengerKey,
       routerConfig: appRouter,
     );
   }
