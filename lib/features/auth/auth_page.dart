@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthPage extends StatefulWidget {
@@ -10,46 +9,19 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  @override
-  void initState() {
-    super.initState();
-    // 인증 상태 변화 감지
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      final session = data.session;
-      if (session != null && mounted) {
-        context.go('/home');
-      }
-    });
-  }
-
   Future<void> _signInWithProvider(OAuthProvider provider) async {
     try {
-      String redirectUrl;
-
-      switch (provider) {
-        case OAuthProvider.google:
-          redirectUrl = 'tricount://auth/google';
-          break;
-        case OAuthProvider.apple:
-          redirectUrl = 'tricount://auth/apple';
-          break;
-        case OAuthProvider.kakao:
-          redirectUrl = 'tricount://auth/kakao';
-          break;
-        default:
-          redirectUrl = 'tricount://auth/google';
-      }
-
       await Supabase.instance.client.auth.signInWithOAuth(
         provider,
         redirectTo: 'tricount://auth/${provider.name}',
       );
+      // 로그인 후 Supabase가 리디렉션으로 앱을 다시 열면,
+      // SplashPage에서 세션 상태를 감지하여 화면 이동을 처리함.
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: $e')),
-        );
-      }
+      if (!context.mounted || !mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: $e')),
+      );
     }
   }
 
@@ -93,7 +65,9 @@ class _AuthPageState extends State<AuthPage> {
               TextButton(
                 onPressed: () async {
                   await Supabase.instance.client.auth.signOut();
-                  context.go('/home');
+                  if (!mounted || !context.mounted) return;
+                  // 게스트 로그인 시 다음 화면으로 이동 (SplashPage가 세션 확인)
+                  Navigator.of(context).pushReplacementNamed('/home');
                 },
                 child: const Text('Skip (Guest)'),
               ),
