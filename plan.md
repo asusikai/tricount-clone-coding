@@ -19,8 +19,8 @@
 
 | 단계 | 기간 | 목표 | 상태 |
 |------|------|------|------|
-| **1단계. 인증 시스템 구축** | 2025-11-04 ~ 2025-11-10 | Google / Apple / Kakao OAuth 구현 | todo |
-| **2단계. 그룹 생성 및 초대 링크** | 2025-11-11 ~ 2025-11-15 | 그룹 생성, 초대 코드/딥링크 기능 구현 | todo |
+| **1단계. 인증 시스템 구축** | 2025-11-04 ~ 2025-11-10 | Google / Apple / Kakao OAuth 구현 | done |
+| **2단계. 그룹 생성 및 초대 링크** | 2025-11-11 ~ 2025-11-15 | 그룹 생성, 초대 코드/딥링크 기능 구현 | done |
 | **3단계. 지출 기록 기능** | 2025-11-16 ~ 2025-11-20 | Expense CRUD, 환율 변환 포함 | todo |
 | **4단계. 정산 로직 구현** | 2025-11-21 ~ 2025-11-25 | 최소 송금 방식 계산 및 balances 표시 | todo |
 | **5단계. 송금 요청 및 확인 시스템** | 2025-11-26 ~ 2025-11-30 | Request 등록, 송금 완료/거절/롤백 | todo |
@@ -32,19 +32,19 @@
 # 3. 주요 태스크
 
 ## [Auth]
-- [ ] Google OAuth 연동
-- [ ] Apple OAuth 연동
-- [ ] Kakao OAuth 연동
-- [ ] 로그인 상태 감지 후 SplashPage → HomePage 라우팅  
+- [x] Google OAuth 연동
+- [x] Apple OAuth 연동
+- [x] Kakao OAuth 연동
+- [x] 로그인 상태 감지 후 SplashPage → HomePage 라우팅  
   **담당:** `infra-agent`, `dev-agent`  
   **출력물:** 로그인 완료 후 Supabase `users` 테이블 등록
 
 ---
 
 ## [Group]
-- [ ] 그룹 생성 (이름, 기본 통화)
-- [ ] 초대 코드 자동 생성 (`UUID`)
-- [ ] 딥링크 → 앱 실행 후 자동 가입  
+- [x] 그룹 생성 (이름, 기본 통화)
+- [x] 초대 코드 자동 생성 (`UUID`)
+- [x] 딥링크 → 앱 실행 후 자동 가입  
   **담당:** `dev-agent`  
   **테이블:** `groups`, `members`
 
@@ -150,8 +150,8 @@
 
 | 태스크 | 담당 | 상태 |
 |---------|--------|--------|
-| Auth 구현 | infra-agent | todo |
-| 그룹 생성/초대 | dev-agent | todo |
+| Auth 구현 | infra-agent | done |
+| 그룹 생성/초대 | dev-agent | done |
 | Expense CRUD | dev-agent | todo |
 | 정산 로직 | dev-agent | todo |
 | 송금 요청/처리 | dev-agent | todo |
