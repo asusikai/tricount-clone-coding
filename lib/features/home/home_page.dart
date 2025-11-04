@@ -107,9 +107,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                             child: ListTile(
                               leading: CircleAvatar(
                                 child: Text(
-                                  (group['name'] as String? ?? 'G')
-                                      .substring(0, 1)
-                                      .toUpperCase(),
+                                  () {
+                                    final name = (group['name'] as String?)?.trim() ?? '';
+                                    return name.isEmpty
+                                        ? 'G'
+                                        : name.substring(0, 1).toUpperCase();
+                                  }(),
                                 ),
                               ),
                               title: Text(group['name'] as String? ?? '이름 없음'),
