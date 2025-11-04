@@ -18,7 +18,12 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _checkAuth() async {
     await Future.delayed(const Duration(seconds: 1)); // 로딩 연출
+
+    // async gap 이후에 반드시 mounted 확인
+    if (!mounted) return;
+
     final session = Supabase.instance.client.auth.currentSession;
+
     if (session == null) {
       context.go('/auth');
     } else {
