@@ -16,6 +16,9 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   List<Map<String, dynamic>> _groups = [];
   bool _isLoading = true;
+  int _selectedIndex = 0;
+
+  static const List<String> _tabTitles = ['Groups', 'Requests', 'Profile'];
 
   @override
   void initState() {
@@ -42,13 +45,28 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  void _onTabSelected(int index) {
+    if (_selectedIndex == index) {
+      return;
+    }
+
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
+    final tabs = <Widget>[
+      _buildGroupsTab(user),
+      const _RequestsTab(),
+      const _ProfileTab(),
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Groups'),
+        title: Text(_tabTitles[_selectedIndex]),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -59,82 +77,140 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      body: user == null
-          ? const Center(child: Text('로그인되지 않음'))
-          : _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _groups.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.group_outlined,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            '그룹이 없습니다',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '새 그룹을 만들어보세요',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadGroups,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: _groups.length,
-                        itemBuilder: (context, index) {
-                          final group = _groups[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                child: Text(
-                                  () {
-                                    final name = (group['name'] as String?)?.trim() ?? '';
-                                    return name.isEmpty
-                                        ? 'G'
-                                        : name.substring(0, 1).toUpperCase();
-                                  }(),
-                                ),
-                              ),
-                              title: Text(group['name'] as String? ?? '이름 없음'),
-                              subtitle: Text(
-                                '기본 통화: ${group['base_currency'] ?? 'KRW'}',
-                              ),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                // TODO: GroupPage로 이동
-                                debugPrint('그룹 선택: ${group['id']}');
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go('/group/create');
-        },
-        child: const Icon(Icons.add),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: tabs,
       ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onTabSelected,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.group_outlined),
+            selectedIcon: Icon(Icons.group),
+            label: 'Groups',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.request_page_outlined),
+            selectedIcon: Icon(Icons.request_page),
+            label: 'Requests',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                context.go('/group/create');
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
+    );
+  }
+
+  Widget _buildGroupsTab(User? user) {
+    if (user == null) {
+      return const Center(child: Text('로그인되지 않음'));
+    }
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_groups.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.group_outlined,
+              size: 64,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '그룹이 없습니다',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '새 그룹을 만들어보세요',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadGroups,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: _groups.length,
+        itemBuilder: (context, index) {
+          final group = _groups[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Text(
+                  () {
+                    final name = (group['name'] as String?)?.trim() ?? '';
+                    return name.isEmpty
+                        ? 'G'
+                        : name.substring(0, 1).toUpperCase();
+                  }(),
+                ),
+              ),
+              title: Text(group['name'] as String? ?? '이름 없음'),
+              subtitle: Text(
+                '기본 통화: ${group['base_currency'] ?? 'KRW'}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                // TODO: GroupPage로 이동
+                debugPrint('그룹 선택: ${group['id']}');
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RequestsTab extends StatelessWidget {
+  const _RequestsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('송금 요청 기능이 곧 제공됩니다.'),
+    );
+  }
+}
+
+class _ProfileTab extends StatelessWidget {
+  const _ProfileTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('프로필 관리 기능이 곧 제공됩니다.'),
     );
   }
 }

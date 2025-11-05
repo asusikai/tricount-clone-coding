@@ -51,8 +51,8 @@
 ---
 
 ## [Navigation]
-- [ ] BottomNavigationBar 컴포넌트 구조 정의 (Groups / Requests / Profile)
-- [ ] 각 탭과 라우팅 연동 (HomePage, RequestListPage, ProfilePage)
+- [x] BottomNavigationBar 컴포넌트 구조 정의 (Groups / Requests / Profile)
+- [x] 각 탭과 섹션 연동 (HomePage 내 Groups / Requests / Profile)
   **담당:** `design-agent`, `dev-agent`
 
 ---
