@@ -1,54 +1,176 @@
-# Tricount Clone Flutter App 개발 계획
+# plan.md
 
-## 1. 프로젝트 방향과 범위
-- FlutterFlow 자산은 사용하지 않고, 순수 Flutter 코드베이스로 MVP를 구현한다.
-- Supabase를 인증·데이터·실시간 동기화의 단일 백엔드로 삼고, FCM으로 지출/정산 알림을 보낸다.
-- Google, Apple, Kakao, Naver OAuth를 지원하며, 다중 통화 정산과 Android/iOS 배포를 목표로 한다.
-- 향후 확장 기능으로 정산 비율 랜덤 지정, 게임 기반 정산 보너스 시스템을 고려한다.
+# 프로젝트: splitBill (가제)
+버전: 0.1.0  
+작성일: 2025-11-04  
+기준 문서: `AGENTS.md`
 
-## 2. 아키텍처와 코드 조직
-- `main.dart`를 진입점으로 유지하고, 각 OAuth 공급자용 인증 함수(google/apple/kakao/naver)를 동일 파일 내에서 정의·관리한다.
-- 프레젠테이션 레이어는 `lib/` 하위에 `features/` 모듈 구조로 구성하고, 상태 관리는 Riverpod 기반으로 설계한다.
-- 라우팅은 `go_router`를 사용하여 온보딩 → 그룹 → 지출 → 정산 플로우를 정의한다.
-- 데이터 액세스 레이어는 Supabase SDK 추상화 서비스(`lib/services/`)와 도메인 모델(`lib/models/`)로 분리한다.
-- FCM 및 딥링크 처리는 별도 유틸 모듈(`lib/utils/`)에서 관리하고, 테스트 가능한 순수 함수로 정산 알고리즘을 구현한다.
+---
 
-## 3. 데이터베이스 및 백엔드 연동
-- README에 정의된 Supabase 스키마(profiles, groups, memberships, expenses, expense_splits, invites, exchange_rates, settlements)를 준수한다.
-- 환율 스냅샷과 정산 결과(jsonb)를 기록하여 다중 통화 및 정산 이력 추적을 지원한다.
-- RLS 정책을 통해 그룹/지출 레코드 접근을 제한하고, Edge Functions로 FCM 트리거를 구성한다.
+# 1. 목표
 
-## 4. 단계별 마일스톤
-### Milestone 0 – 프로젝트 세팅
-1. Flutter 프로젝트 의존성(go_router, flutter_riverpod, supabase_flutter, firebase_messaging 등)을 추가한다.
-2. 환경 구성: Firebase/FCM 설정, Supabase 프로젝트 키 및 URL을 로컬 환경변수로 관리한다.
-3. 기본 라우팅과 상태관리 스캐폴딩을 작성한다.
+- MVP 수준의 Flutter 기반 그룹 정산 앱 완성
+- Supabase 연동 및 실사용 가능한 정산 로직 구축
+- Codex 자동화 운영 규칙 기반 개발 워크플로우 정착
 
-### Milestone 1 – 인증 및 온보딩
-1. `main.dart`에 Google/Apple/Kakao/Naver OAuth 함수와 Supabase 세션 관리 로직을 구현한다.
-2. 온보딩/로그인 UI와 프로필 설정 화면을 제작한다.
-3. 로그인 상태에 따른 라우팅 보호(가드)를 설정한다.
+---
 
-### Milestone 2 – 그룹 및 지출 기능
-1. 그룹 CRUD, 멤버 초대(딥링크), 역할 관리를 구현한다.
-2. 지출 등록/수정/삭제와 참여자 분배 UI를 완성한다.
-3. 환율 스냅샷 저장과 최소 송금 정산 알고리즘을 연동한다.
+# 2. 개발 단계
 
-### Milestone 3 – 실시간 동기화와 알림
-1. Supabase Realtime으로 그룹/지출 업데이트를 구독한다.
-2. Edge Function 또는 Cloud Function을 통해 FCM 지출/정산 알림을 전송한다.
-3. 초대 코드 만료 및 딥링크 처리 로직을 보강한다.
+| 단계 | 기간 | 목표 | 상태 |
+|------|------|------|------|
+| **1단계. 인증 시스템 구축** | 2025-11-04 ~ 2025-11-10 | Google / Apple / Kakao OAuth 구현 | done |
+| **2단계. 그룹 생성 및 초대 링크** | 2025-11-11 ~ 2025-11-15 | 그룹 생성, 초대 코드/딥링크 기능 구현 | done |
+| **3단계. 지출 기록 기능** | 2025-11-16 ~ 2025-11-20 | Expense CRUD, 환율 변환 포함 | todo |
+| **4단계. 정산 로직 구현** | 2025-11-21 ~ 2025-11-25 | 최소 송금 방식 계산 및 balances 표시 | todo |
+| **5단계. 송금 요청 및 확인 시스템** | 2025-11-26 ~ 2025-11-30 | Request 등록, 송금 완료/거절/롤백 | todo |
+| **6단계. UI/UX 완성 및 테스트** | 2025-12-01 ~ 2025-12-10 | 주요 화면 구성 및 e2e 테스트 | todo |
+| **7단계. 배포 및 리뷰 자동화** | 2025-12-11 ~ 2025-12-15 | Codex 자동 PR/리뷰 파이프라인 구축 | todo |
 
-### Milestone 4 – QA, 배포, 확장 준비
-1. 자동화/수동 QA 시나리오를 마련하고, Android/iOS 빌드 파이프라인을 구성한다.
-2. Supabase RLS/보안 점검을 수행하고 로그/모니터링 설정을 완료한다.
-3. 향후 기능(랜덤 정산 %, 게임 기반 보너스)을 위한 도메인 모델과 UX 아이디어를 백로그에 정리한다.
+---
 
-## 5. 장기 개선 로드맵
-- 정산 결과 시각화, 오프라인 모드, 추가 결제 연동 등 README에 기재된 항목을 지속적으로 개선한다.
-- 정산 게임화 기능을 실험하여 사용자 참여도를 높이고, 실시간 이벤트 처리와 연동 방식을 검토한다.
+# 3. 주요 태스크
 
-## 6. 참고 문서
-- `README.md`: 프로젝트 개요, 기술 스택, 데이터베이스 구조, 배포 전략.
-- Supabase 문서: Auth, Database, Realtime, Edge Functions.
-- Firebase 문서: FCM, Android/iOS 설정.
+## [Auth]
+- [x] Google OAuth 연동
+- [x] Apple OAuth 연동
+- [x] Kakao OAuth 연동
+- [x] 로그인 상태 감지 후 SplashPage → HomePage 라우팅  
+  **담당:** `infra-agent`, `dev-agent`  
+  **출력물:** 로그인 완료 후 Supabase `users` 테이블 등록
+
+---
+
+## [Group]
+- [x] 그룹 생성 (이름, 기본 통화)
+- [x] 초대 코드 자동 생성 (`UUID`)
+- [x] 딥링크 → 앱 실행 후 자동 가입  
+  **담당:** `dev-agent`  
+  **테이블:** `groups`, `members`
+
+---
+
+## [Expense]
+- [ ] ExpensePage UI 생성
+- [ ] 지출자, 참여자, 금액, 날짜 입력 폼 구성
+- [ ] 환율 변환 로직 (`exchange_rates`)
+- [ ] Supabase insert / update / delete 연동  
+  **담당:** `dev-agent`, `infra-agent`
+
+---
+
+## [Balance & Settlement]
+- [ ] balances 계산 알고리즘 작성
+    - 입력: `expenses`
+    - 출력: `settlements`
+- [ ] 최소 송금 방식 구현
+- [ ] balances UI 갱신 (GroupPage 내)  
+  **담당:** `dev-agent`  
+  **검증:** `review-agent`
+
+---
+
+## [Request]
+- [ ] RequestRegisterPage: 송금 요청 등록
+- [ ] RequestListPage: 요청 목록 표시
+- [ ] RequestPage: 송금 완료, 거절, 롤백
+- [ ] 그룹 내 알림 처리 (Supabase Realtime)  
+  **담당:** `dev-agent`, `infra-agent`
+
+---
+
+## [Profile]
+- [ ] 프로필 조회/수정
+- [ ] 은행 계좌 등록 (복수 가능)
+- [ ] 계좌 복사 버튼 기능  
+  **담당:** `dev-agent`
+
+---
+
+# 4. 인프라 및 보안
+
+| 항목 | 설명 | 담당 | 상태 |
+|------|------|------|------|
+| Supabase Auth | OAuth redirect 및 세션 관리 | infra-agent | todo |
+| Database Schema | users / groups / expenses / settlements 설계 | infra-agent | todo |
+| Exchange API | ECB 환율 업데이트 스케줄러 | infra-agent | todo |
+| 환경변수 관리 | `.env` 분리, gitignore 확인 | review-agent | todo |
+
+---
+
+# 5. 문서 관리
+
+| 문서 | 역할 | 담당 |
+|------|------|------|
+| `AGENTS.md` | 프로젝트 구조, 역할 정의 | doc-agent |
+| `plan.md` | 개발 일정 및 태스크 관리 | doc-agent |
+| `README.md` | 사용자용 문서 | doc-agent |
+| `PR 템플릿` | `.github/pull_request_template.md` 유지 | review-agent |
+
+---
+
+# 6. 워크플로우 규칙
+
+- 모든 태스크는 **단일 목적**으로 PR 생성.
+- PR 병합 후 `plan.md` 상태(`todo → in-progress → done`) 즉시 갱신.
+- 리뷰 통과 전에는 main 병합 불가.
+- Codex 자동화 태스크 수행 순서:
+    1. `Auth`
+    2. `Group`
+    3. `Expense`
+    4. `Balance & Settlement`
+    5. `Request`
+    6. `Profile`
+    7. `Infra/Docs`
+
+---
+
+# 7. 품질 검증
+
+| 항목 | 기준 |
+|------|------|
+| 빌드 | Flutter build 성공 |
+| 코드 포맷 | `flutter format` 통과 |
+| 테스트 | Unit + Widget Test 필수 |
+| 리뷰 | `review-agent` 승인 후 병합 |
+| 배포 | dev → main 수동 merge 후 TestFlight 배포 |
+
+---
+
+# 8. 최종 산출물
+
+- Flutter 앱 (Android / iOS)
+- Supabase DB Schema
+- Codex 자동화 파이프라인 (PR, 리뷰, 배포)
+- 문서 3종 (`AGENTS.md`, `plan.md`, `README.md`)
+
+---
+
+# 9. 상태 트래킹
+
+| 태스크 | 담당 | 상태 |
+|---------|--------|--------|
+| Auth 구현 | infra-agent | done |
+| 그룹 생성/초대 | dev-agent | done |
+| Expense CRUD | dev-agent | todo |
+| 정산 로직 | dev-agent | todo |
+| 송금 요청/처리 | dev-agent | todo |
+| 프로필 관리 | dev-agent | todo |
+| 환율 API 연동 | infra-agent | todo |
+| 문서 갱신 | doc-agent | todo |
+
+---
+
+# 10. 자동화 체크리스트
+
+- [ ] PR 작성 시 `plan.md` 갱신 자동화
+- [ ] PR 승인 시 `in-progress → done` 자동 전환
+- [ ] 오류 발생 시 로그 자동 첨부
+- [ ] dev 브랜치 기준 주기적 빌드 테스트
+
+---
+
+# 결론
+
+이 `plan.md`는 Codex의 실행 우선순위 및 각 agent의 담당 영역을 명확히 정의한다.  
+Codex는 이 문서를 기준으로 태스크를 실행하며, `AGENTS.md`의 역할 규칙을 따른다.

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class SplashPage extends StatefulWidget {
+import '../../common/services/auth_service.dart';
+
+class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
   @override
-  State<SplashPage> createState() => _SplashPageState();
+  ConsumerState<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   void initState() {
     super.initState();
@@ -27,6 +30,11 @@ class _SplashPageState extends State<SplashPage> {
     if (session == null) {
       context.go('/auth');
     } else {
+      try {
+        await ref.read(authServiceProvider).syncUserProfile();
+      } catch (error) {
+        debugPrint('사용자 프로필 동기화 실패: $error');
+      }
       context.go('/home');
     }
   }
