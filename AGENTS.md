@@ -43,13 +43,19 @@
 | --- | --- |
 | **SplashPage** | 로그인 상태 확인 후 AuthPage 또는 HomePage로 라우팅 |
 | **AuthPage** | 튜토리얼 카드 및 OAuth 로그인 버튼 제공 |
-| **HomePage** | 가입 그룹 리스트, 정산 상태별 섹션, 그룹 추가 및 하단 네비게이션 |
+| **HomePage** | 가입 그룹 리스트, 정산 상태별 섹션, 그룹 추가 및 하단 네비게이션 (Groups / Requests / Profile) |
 | **GroupPage** | 지출/잔액 섹션, 날짜별·사용자별 지출 내역, 그룹 설정 |
 | **ExpensePage** | 지출 등록 및 수정, 분담 비율 계산, 환율 변환 |
 | **RequestRegisterPage** | 자동 계산된 송금 요청 생성 및 상태 변경 |
 | **RequestListPage** | 요청 내역 목록화, 송금 상태별 필터링 |
 | **RequestPage** | 송금 완료/거절/롤백 처리, 계좌 복사 기능 |
 | **ProfilePage** | 실명, 닉네임, 은행 계좌 관리 |
+
+---
+
+## 공통 UI 컴포넌트
+
+- **BottomNavigationBar**: 앱 전역 하단 네비게이션. 탭 구성은 `Groups`, `Requests`, `Profile`이며, 각 탭은 동일한 네비게이션 상태를 유지하도록 `design-agent`가 구조를 정의하고 `dev-agent`가 구현한다.
 
 ---
 
