@@ -51,6 +51,8 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
         ),
       );
 
+      ref.invalidate(userGroupsProvider);
+
       // 홈으로 돌아가기
       context.go('/home');
     } catch (e) {

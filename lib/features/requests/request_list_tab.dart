@@ -108,6 +108,8 @@ class _RequestListView extends ConsumerWidget {
 
   final List<PaymentRequest> requests;
   final Future<void> Function() onRefresh;
+  static const _listKey = PageStorageKey<String>('requests_list');
+  static const _emptyListKey = PageStorageKey<String>('requests_list_empty');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,6 +119,7 @@ class _RequestListView extends ConsumerWidget {
       onRefresh: onRefresh,
       child: requests.isEmpty
           ? ListView(
+              key: _emptyListKey,
               physics: const AlwaysScrollableScrollPhysics(),
               children: const [
                 SizedBox(height: 120),
@@ -131,6 +134,7 @@ class _RequestListView extends ConsumerWidget {
               ],
             )
           : ListView.separated(
+              key: _listKey,
               itemCount: requests.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (context, index) {

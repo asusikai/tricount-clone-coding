@@ -250,3 +250,9 @@ final groupServiceProvider = Provider<GroupService>((ref) {
   return GroupService(Supabase.instance.client);
 });
 
+final userGroupsProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final groupService = ref.read(groupServiceProvider);
+  return groupService.getUserGroups();
+});
+

@@ -90,8 +90,9 @@ supabase.sql을 바탕으로 한다.
 
 ## 실행 우선순위
 
-- Codex는 `plan.md` 내 정의된 우선순위를 기반으로 태스크를 실행.
-- 태스크 상태는 `todo → in-progress → done`만 사용.
+- 최초 실행 시 프로젝트 내 .taskmaster 내부 파일들을 참고한다.
+- Codex는 `tasks` 내 정의된 우선순위를 기반으로 task를 실행.
+- 태스크 상태는 `pending → in-progress → done`만 사용.
 - 에이전트는 `AGENTS.md` 내 역할 정의에 따라 자동 선택.
 
 ## 브랜치 및 PR
