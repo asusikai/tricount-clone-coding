@@ -315,6 +315,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final bankName = bankController.text.trim();
     final accountNumber = numberController.text.trim();
     final alias = aliasController.text.trim();
+    
+    // 프로필에서 사용자 이름 가져오기 (이미 로드된 데이터 사용)
+    final userName = (_profile?['name'] as String?)?.trim();
+    final accountHolder = userName?.isNotEmpty == true ? userName : null;
 
     if (bankName.isEmpty || accountNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -328,6 +332,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             userId: user.id,
             bankName: bankName,
             accountNumber: accountNumber,
+            accountHolder: accountHolder,
             memo: alias.isEmpty ? null : alias,
           );
       if (!mounted) {
@@ -470,23 +475,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        Chip(
-                          label: Text(provider.toUpperCase()),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        if (nickname != null && nickname.isNotEmpty)
-                          Chip(
-                            label: Text('닉네임: $nickname'),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                      ],
-                    ),
                   ],
                 ),
               ),
@@ -496,15 +484,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.badge_outlined),
-                  title: const Text('실명'),
-                  subtitle: Text(displayName),
-                  trailing: TextButton(
-                    onPressed: _editName,
-                    child: const Text('수정'),
-                  ),
-                ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.tag_faces_outlined),
