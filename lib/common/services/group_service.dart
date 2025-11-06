@@ -35,6 +35,7 @@ class GroupService {
             'name': name,
             'base_currency': baseCurrency,
             'invite_code': inviteCode,
+            'owner_id': user.id,
             'created_at': DateTime.now().toIso8601String(),
           })
           .select()
