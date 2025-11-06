@@ -42,9 +42,10 @@
               2
             ],
             "details": "현 Home/탭 구현을 점검해 IndexedStack이 스크롤/폼 상태를 유지하는지 확인; 부족 시 각 탭에 GlobalKey<NavigatorState> 기반 Nested Navigator + Offstage 구조로 리팩터링; PageStorageKey 적용, 안드로이드 뒤로가기 시 탭 내부 스택 우선 팝 처리; 딥링크로 특정 탭 진입 후 복귀 흐름 정합성 확보.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "수동 시나리오: 각 탭에서 상세로 진입→탭 전환→복귀 시 스크롤/폼 값 유지 확인. 딥링크로 Requests 탭 진입 후 뒤로가기 동작 검증. 위젯 테스트로 탭 전환 후 상태 보존 여부 체크.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2025-11-06T07:42:51.285Z"
           },
           {
             "id": 4,
@@ -64,7 +65,7 @@
         "complexity": 4,
         "recommendedSubtasks": 4,
         "expansionPrompt": "레포의 현재 구현을 기준으로 다음을 정렬하세요: 1) URL 스킴 통일(요구사항 splitbills://invite vs 현재 tricount://group/join) 및 플랫폼 설정 갱신, 2) 환경 주입 전략 확정(.env/flutter_dotenv vs 현재 --dart-define)과 빌드 스크립트, 3) IndexedStack+탭 유지 구조 검증 및 Nested Navigator 필요 시 도입, 4) flutter analyze 및 기본 부팅 실패/예외 핸들링 보강.",
-        "updatedAt": "2025-11-05T15:45:46.589Z"
+        "updatedAt": "2025-11-06T07:42:51.285Z"
       },
       {
         "id": "2",
@@ -195,7 +196,7 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2025-11-05T15:45:46.591Z",
+      "lastModified": "2025-11-06T07:42:51.288Z",
       "taskCount": 10,
       "completedCount": 0,
       "tags": [
