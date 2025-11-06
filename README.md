@@ -3,6 +3,22 @@
 ## 프로젝트 개요
 Tricount와 유사한 그룹 비용 정산 앱의 MVP를 Flutter로 구현합니다. FlutterFlow에서 제작한 프로토타입을 기반으로 순수 Flutter 프로젝트로 리팩터링하고, Supabase와 FCM을 활용해 인증과 푸시 알림을 통합적으로 처리합니다.
 
+## 환경 변수 설정
+- 루트의 `.env.example`을 참고해 `assets/env/.env` 파일을 생성하고 Supabase URL, anon key, redirect URI를 채워주세요.
+- 환경별로 다른 값을 사용하려면 `assets/env/.env.dev`, `assets/env/.env.prod` 파일을 추가하고 필요 시 `flutter run --dart-define=APP_ENV=prod`처럼 `APP_ENV` 값을 지정합니다 (기본값은 `dev`).
+- 모든 `.env` 파일은 `.gitignore` 대상이므로 개인 환경에서만 유지되며, CI에서는 빌드 전에 파일을 생성해야 합니다.
+- GitHub Actions 예시:
+  ```yaml
+  - name: Setup environment
+    run: |
+      mkdir -p assets/env
+      cat <<'EOF' > assets/env/.env
+      SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_REDIRECT_URI=${{ secrets.SUPABASE_REDIRECT_URI }}
+      EOF
+  ```
+
 ## 목표
 - FlutterFlow 프로토타입을 Export 후 리팩터링하여 프로덕션 레벨 Flutter 앱 개발
 - Supabase를 이용해 Auth, DB, 실시간 동기화 환경 구성

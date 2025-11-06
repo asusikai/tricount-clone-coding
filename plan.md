@@ -78,18 +78,21 @@
 ---
 
 ## [Request]
-- [ ] RequestRegisterPage: 송금 요청 등록
-- [ ] RequestListPage: 요청 목록 표시
-- [ ] RequestPage: 송금 완료, 거절, 롤백
+- [x] RequestRegisterPage: 송금 요청 등록
+- [x] RequestListPage: 요청 목록 표시
+- [x] RequestPage: 송금 완료, 거절, 롤백
 - [ ] 그룹 내 알림 처리 (Supabase Realtime)  
   **담당:** `dev-agent`, `infra-agent`
 
 ---
 
 ## [Profile]
-- [ ] 프로필 조회/수정
-- [ ] 은행 계좌 등록 (복수 가능)
-- [ ] 계좌 복사 버튼 기능  
+- [x] 프로필 조회/수정
+    - [x] 프로필 화면 UI 기본 구성
+    - [x] 실명 수정 Supabase 업데이트 연동
+    - [x] 닉네임 수정 기능 추가
+- [x] 은행 계좌 등록 (복수 가능)
+- [x] 계좌 복사 버튼 기능  
   **담당:** `dev-agent`
 
 ---

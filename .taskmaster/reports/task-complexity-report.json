@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-11-05T11:56:58.211Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "프로젝트 초기 세팅 및 네비게이션 스캐폴딩",
+			"complexityScore": 4,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "레포의 현재 구현을 기준으로 다음을 정렬하세요: 1) URL 스킴 통일(요구사항 splitbills://invite vs 현재 tricount://group/join) 및 플랫폼 설정 갱신, 2) 환경 주입 전략 확정(.env/flutter_dotenv vs 현재 --dart-define)과 빌드 스크립트, 3) IndexedStack+탭 유지 구조 검증 및 Nested Navigator 필요 시 도입, 4) flutter analyze 및 기본 부팅 실패/예외 핸들링 보강.",
+			"reasoning": "이미 Supabase.initialize(Env)·GoRouter·Splash/Auth/Home·IndexedStack 탭(홈 내)·딥링크(AppLinks) 등이 구현됨(lib/main.dart, lib/app_router.dart, lib/features/*). 요구와 다른 부분은 URL 스킴(spllitbills vs tricount)과 .env 전략이며, 대부분은 정렬/미세 보강 수준입니다."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "OAuth 인증 플로우(Supabase Auth) 구현",
+			"complexityScore": 4,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "1) 기존 PKCE 콜백 처리(main.dart _handleAuthCallback)와 라우팅 재확인, 2) Kakao/Apple/Google 각각 redirect URI/스킴 일치 점검 및 오류 UX 스낵바 표준화, 3) users upsert 후 오류 로깅/리커버리 정리, 4) 세션 만료/로그아웃 후 재로그인 경계 케이스 보강(재시도 딜레이/flow state).",
+			"reasoning": "Auth는 이미 PKCE 플로우+콜백 처리+에러 재시도+users upsert까지 구현(lib/common/services/auth_service.dart, lib/main.dart, lib/features/auth/auth_page.dart). 공급자별 리디렉션/플랫폼 설정과 에러 UX 정리 정도의 보강만 필요합니다."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "데이터 모델 및 리포지토리 레이어 구축",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "1) freezed/json_serializable 및 build_runner 파이프라인 추가, 2) DTO 정의(users, groups(base_currency), members, expenses(participants[]), settlements, exchange_rates), 3) Map 기반 서비스(Group/Request)→타입 안전 리포지토리로 마이그레이션, 4) 공통 AppException/Result 도입, 5) 직렬화 라운드트립/널세이프티 테스트, 6) 생성 코드 스크립트/ignore 정리, 7) 단계적 치환(컴파일 안전 보장).",
+			"reasoning": "현재 Map 기반 서비스가 다수(Group/Request/Profile/BankAccount)이고 DTO는 PaymentRequest만 존재(lib/common/models/payment_request.dart). 스키마 전반 DTO+리포지토리 도입은 생성기/마이그레이션/테스트까지 포함되어 작업량이 큽니다."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "그룹 생성/목록/상세(UI) 구현",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "1) GroupPage 스켈레톤(지출/잔액 섹션, 필터 탭) 신규, 2) GroupCreatePage 완료 후 목록 갱신/스낵바 흐름 정제, 3) 상태관리(현재 로컬 setState→Provider/캐시) 정리, 4) 빈/에러/로딩 상태 UX 보강, 5) 통화 표기(intl) 유틸 도입 및 적용.",
+			"reasoning": "그룹 생성/목록은 이미 구현(lib/features/group/group_create_page.dart, Home의 Groups 탭). 상세(GroupPage)만 신규이며 데이터 파이프 연결이 필요하지만 난이도는 중간입니다."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "딥링크 초대 처리 및 자동 가입",
+			"complexityScore": 3,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "1) 초대 링크 포맷 통일(요구 splitbills://invite?code= vs 현재 tricount://group/join?code=) 및 공유 훅 추가(share_plus), 2) app_links 기반 초기/런타임 링크 파싱 재검증, 3) 가입 실패/중복 UX와 리다이렉트 정책 정리.",
+			"reasoning": "딥링크 수신과 자동 가입은 이미 구현(main.dart _handleGroupInvite, GroupService.getInviteLink). 포맷/네이밍 통일과 공유 기능 추가만 필요합니다."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "지출 등록/수정(분담비 포함) 구현",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "1) ExpensePage 폼(날짜/금액/통화/부담자/참가자/메모), 2) Equal split/커스텀 비율 편집기와 합=1.0 검증, 3) participants 배열 직렬화/역직렬화, 4) 환율 표시 유틸(그룹 base_currency 기준 환산) 및 폴백, 5) insert/update API와 optimistic 갱신, 6) 그룹 상세 리스트 반영/캐시 무효화, 7) 부동소수점/반올림 규칙, 8) 접근성/키보드 UX, 9) 단위/위젯 테스트, 10) 오류/권한 가드.",
+			"reasoning": "지출 관련 화면/서비스가 부재하고(레포에 expenses 없음) 복잡한 폼 상태·분담 로직·환율 표기가 필요합니다. 신규 개발 범위가 넓고 검증 포인트가 많습니다."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "정산 계산(Supabase Function) 연동",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "1) RPC 클라이언트 래퍼와 타입 매핑, 2) GroupPage ‘정산 계산’ 버튼/미리보기 다이얼로그, 3) 반올림/표시 규칙, 4) 확정 시 settlements insert 트랜잭션 처리, 5) 빈/에러/양방향 상쇄 처리, 6) 모킹 기반 단위 테스트.",
+			"reasoning": "클라이언트 측은 RPC 호출→미리보기→확정 저장 플로우 구현이 핵심이며 화면과 트랜잭션 처리 연결이 필요합니다. 신규이지만 로직 복잡도는 서버에 위임되어 중간 수준입니다."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "정산 상태 실시간 추적 및 요청 화면군",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "1) Supabase Realtime 구독 채널 구성/해제, 2) RequestListTab/RequestPage에 실시간 반영(캐시 병합), 3) 상태 전이(pending→paid|rejected|rolled_back) 맵핑과 현재 enum(completed/declined) 정렬, 4) 오프라인 재연결 시 재조회, 5) 메모리 누수/수명주기 가드, 6) 에러 리트라이/토스트, 7) 위젯 테스트(상태 전이).",
+			"reasoning": "요청 화면군은 이미 존재(lib/features/requests/*)하고 상태 업데이트 API도 구현되어 있으나 실시간 구독/동기화가 없음. enum/상태 정의 불일치 조정과 구독 수명주기 관리가 주요 과제입니다."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "송금 액션(플레이스홀더) 및 계좌 복사",
+			"complexityScore": 4,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "1) PaymentProvider 인터페이스/결과 타입 정의, 2) 카카오/토스 URL 스킴 런처 스텁, 3) RequestPage에 ‘송금하기’ 액션 추가(Clipboard+launchUrl), 4) 실패 시 안내 및 수동 완료 처리 버튼 유지/가드.",
+			"reasoning": "프로필에서 계좌 복사는 이미 구현(clipboard in ProfilePage). RequestPage에 액션/런처 스텁과 인터페이스 추가만 하면 되어 단순 편입니다."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "프로필/계좌 관리(User Metadata) 및 포맷팅",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "1) Supabase Auth user_metadata 로드/저장 유틸 추가, 2) 기존 users 테이블 업데이트와 메타데이터 병행/이행 전략, 3) 계좌 표시 마스킹/복사 UX 정리, 4) intl 통화/날짜 포맷 유틸 공통화, 5) RequestPage 수신자 계좌 표시 연동, 6) 저장 후 재진입 복원/유효성 검증 테스트.",
+			"reasoning": "현재 users 테이블 기반 프로필/계좌 기능이 구현되어 있으나(Auth 메타데이터는 미사용), 포맷 유틸과 메타데이터 이행이 주 과제입니다. 기능은 부분 구현되어 중간 난이도입니다."
+		}
+	]
+}

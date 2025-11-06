@@ -61,22 +61,27 @@
 
 # 데이터 구조
 
+supabase.sql을 바탕으로 한다.
+
 | 테이블 | 필드 | 설명 |
 | --- | --- | --- |
-| `users` | `id`, `email`, `name`, `provider` | 사용자 정보 |
-| `groups` | `id`, `name`, `invite_code`, `created_at` | 그룹 정보 및 초대 코드 |
-| `members` | `id`, `user_id`, `group_id`, `joined_at` | 그룹-사용자 매핑 |
-| `expenses` | `id`, `group_id`, `payer_id`, `amount`, `description`, `date`, `participants[]` | 지출 내역 |
-| `settlements` | `id`, `group_id`, `from_user`, `to_user`, `amount` | 정산 결과 |
-| `exchange_rates` | `currency`, `rate`, `updated_at` | 환율 정보 (ECB 기준) |
+| `users` | `id`, `email`, `name`, `nickname`, `provider`, `avatar_url`, `created_at`, `updated_at` | Supabase auth 연동 사용자 |
+| `groups` | `id`, `owner_id`, `name`, `base_currency`, `invite_code`, `created_at`, `updated_at` | 그룹 정보 및 초대 코드 |
+| `members` | `id`, `group_id`, `user_id`, `role`, `joined_at` | 그룹-사용자 매핑 및 역할 |
+| `bank_accounts` | `id`, `user_id`, `bank_name`, `account_number`, `account_holder`, `is_public`, `memo`, `created_at`, `updated_at` | 사용자 보유 계좌. 공개 여부 선택 가능 |
+| `expenses` | `id`, `group_id`, `payer_id`, `created_by`, `amount`, `currency`, `description`, `expense_date`, `participants(jsonb)`, `created_at`, `updated_at` | 지출 기록 및 분배 참여자 |
+| `settlements` | `id`, `group_id`, `from_user`, `to_user`, `amount`, `currency`, `status`, `memo`, `created_at`, `updated_at` | 최소 송금 결과 |
+| `exchange_rates` | `base_currency`, `currency`, `rate`, `rate_date`, `updated_at` | 환율 정보 (ECB 기준) |
 
 ### 관계 정의
 
 - users 1 : N members
 - groups 1 : N members
 - groups 1 : N expenses
+- users 1 : N bank_accounts
 - expenses N : N users (participants)
 - settlements N : 1 groups
+- users 1 : N settlements (from_user, to_user)
 - exchange_rates 1 : N expenses
 
 ---
