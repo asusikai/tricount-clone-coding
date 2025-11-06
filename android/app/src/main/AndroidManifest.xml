@@ -60,24 +60,14 @@
                     android:host="login-callback"
                     android:pathPattern=".*" />
             </intent-filter>
-            <!-- Deep link for tricount scheme callbacks (Kakao/others) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="tricount"
-                    android:host="auth"
-                    android:pathPattern=".*" />
-            </intent-filter>
             <!-- Deep link for group invite -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="tricount"
-                    android:host="group"
+                    android:scheme="splitbills"
+                    android:host="invite"
                     android:pathPattern=".*" />
             </intent-filter>
             <!-- Deep link for https (Naver OAuth) - 보류 -->

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../config/environment.dart';
+
 class AuthService {
   AuthService(this._client);
 
@@ -169,7 +171,7 @@ class AuthService {
 
   String _buildRedirectUri(OAuthProvider provider) {
     final providerName = provider.name.toLowerCase();
-    return 'tricount://auth/$providerName';
+    return Environment.buildSupabaseRedirectUri(providerName);
   }
 
   String? _extractProvider(Session session) {

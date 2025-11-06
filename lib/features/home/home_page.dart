@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../common/services/auth_service.dart';
 import '../../common/services/group_service.dart';
+import '../../common/services/request_service.dart';
+import '../profile/profile_page.dart';
+import '../requests/request_list_tab.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -55,27 +57,42 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  FloatingActionButton? _buildFab(BuildContext context) {
+    switch (_selectedIndex) {
+      case 0:
+        return FloatingActionButton(
+          onPressed: () {
+            context.go('/group/create');
+          },
+          child: const Icon(Icons.add),
+        );
+      case 1:
+        return FloatingActionButton(
+          onPressed: () async {
+            final shouldRefresh = await context.push<bool>('/requests/register');
+            if (shouldRefresh == true && mounted) {
+              ref.invalidate(requestListProvider);
+            }
+          },
+          child: const Icon(Icons.note_add),
+        );
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
     final tabs = <Widget>[
       _buildGroupsTab(user),
-      const _RequestsTab(),
-      const _ProfileTab(),
+      const RequestsTab(),
+      const ProfilePage(),
     ];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_tabTitles[_selectedIndex]),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await ref.read(authServiceProvider).signOut();
-              if (context.mounted) context.go('/splash');
-            },
-          ),
-        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -102,14 +119,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                context.go('/group/create');
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: _buildFab(context),
     );
   }
 
@@ -189,28 +199,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           );
         },
       ),
-    );
-  }
-}
-
-class _RequestsTab extends StatelessWidget {
-  const _RequestsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('송금 요청 기능이 곧 제공됩니다.'),
-    );
-  }
-}
-
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('프로필 관리 기능이 곧 제공됩니다.'),
     );
   }
 }

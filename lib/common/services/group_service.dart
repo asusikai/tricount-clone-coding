@@ -151,6 +151,40 @@ class GroupService {
     }
   }
 
+  /// 그룹 멤버 목록 조회 (사용자 정보 포함)
+  Future<List<Map<String, dynamic>>> getGroupMembers(String groupId) async {
+    try {
+      final response = await _client
+          .from('members')
+          .select('''
+            user_id,
+            joined_at,
+            users (
+              id,
+              name,
+              nickname,
+              email
+            )
+          ''')
+          .eq('group_id', groupId);
+
+      return response
+          .map<Map<String, dynamic>>((member) {
+            final user = member['users'] as Map<String, dynamic>?;
+            return {
+              'user_id': member['user_id'],
+              'joined_at': member['joined_at'],
+              if (user != null) ...user,
+            };
+          })
+          .toList(growable: false);
+    } catch (error, stackTrace) {
+      debugPrint('그룹 멤버 조회 실패: $error');
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+    return [];
+  }
+
   /// 그룹 삭제 (소유자만 가능)
   Future<void> deleteGroup(String groupId) async {
     try {
@@ -202,7 +236,7 @@ class GroupService {
       }
 
       final inviteCode = groupResponse['invite_code'] as String;
-      return 'tricount://group/join?code=$inviteCode';
+      return 'splitbills://invite?code=$inviteCode';
     } catch (error, stackTrace) {
       debugPrint('초대 링크 생성 실패: $error');
       debugPrint('스택 트레이스: $stackTrace');

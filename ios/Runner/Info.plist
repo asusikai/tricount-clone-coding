@@ -63,6 +63,14 @@
           <string>tricount</string>
         </array>
       </dict>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>splitbills-invite</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>splitbills</string>
+        </array>
+      </dict>
     </array>
 
 </dict>

@@ -8,18 +8,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_router.dart';
 import 'common/services/auth_service.dart';
 import 'common/services/group_service.dart';
-import 'config/env.dart';
+import 'config/environment.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Env.ensureSupabase();
+  await Environment.load();
+  Environment.ensureSupabase();
 
   await Supabase.initialize(
-    url: Env.supabaseUrl,
-    anonKey: Env.supabaseAnonKey,
+    url: Environment.supabaseUrl,
+    anonKey: Environment.supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
-      ),
+    ),
   );
   
   runApp(const ProviderScope(child: MyApp()));
@@ -64,7 +65,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     // 그룹 초대 딥링크 처리
-    if (uri.scheme == 'tricount' && uri.host == 'group') {
+    if (_isGroupInviteUri(uri)) {
       await _handleGroupInvite(uri);
       return;
     }
@@ -72,41 +73,52 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _handleGroupInvite(Uri uri) async {
     try {
-      if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'join') {
-        final inviteCode = uri.queryParameters['code'];
-        if (inviteCode == null || inviteCode.isEmpty) {
-          debugPrint('초대 코드가 없습니다: $uri');
-          return;
-        }
+      if (!_isGroupInviteUri(uri)) {
+        debugPrint('지원하지 않는 그룹 초대 링크입니다: $uri');
+        return;
+      }
 
-        debugPrint('그룹 초대 링크 처리: $inviteCode');
-
-        // 로그인 상태 확인
-        final client = Supabase.instance.client;
-        final session = client.auth.currentSession;
-        if (session == null) {
-          debugPrint('로그인이 필요합니다. 로그인 페이지로 이동');
-          if (mounted) {
-            _safeNavigate('/auth');
-          }
-          return;
-        }
-
-        // 그룹 가입 처리
-        final groupService = GroupService(client);
-        final groupId = await groupService.joinGroupByInviteCode(inviteCode);
-
-        debugPrint('그룹 가입 성공: $groupId');
-
+      final inviteCode = _parseInviteCode(uri);
+      if (inviteCode == null || inviteCode.isEmpty) {
+        debugPrint('초대 코드가 없습니다: $uri');
         if (mounted) {
           _scaffoldMessengerKey.currentState?.showSnackBar(
             const SnackBar(
-              content: Text('그룹에 가입되었습니다.'),
-              duration: Duration(seconds: 2),
+              content: Text('유효하지 않은 초대 링크입니다.'),
+              duration: Duration(seconds: 3),
             ),
           );
-          _safeNavigate('/home');
         }
+        return;
+      }
+
+      debugPrint('그룹 초대 링크 처리: $inviteCode');
+
+      // 로그인 상태 확인
+      final client = Supabase.instance.client;
+      final session = client.auth.currentSession;
+      if (session == null) {
+        debugPrint('로그인이 필요합니다. 로그인 페이지로 이동');
+        if (mounted) {
+          _safeNavigate('/auth');
+        }
+        return;
+      }
+
+      // 그룹 가입 처리
+      final groupService = GroupService(client);
+      final groupId = await groupService.joinGroupByInviteCode(inviteCode);
+
+      debugPrint('그룹 가입 성공: $groupId');
+
+      if (mounted) {
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          const SnackBar(
+            content: Text('그룹에 가입되었습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        _safeNavigate('/home');
       }
     } catch (error, stackTrace) {
       debugPrint('그룹 초대 처리 실패: $error');
@@ -121,6 +133,49 @@ class _MyAppState extends State<MyApp> {
         );
       }
     }
+  }
+
+  bool _isGroupInviteUri(Uri uri) {
+    if (uri.scheme != 'splitbills') {
+      return false;
+    }
+
+    if (uri.host.toLowerCase() == 'invite') {
+      return true;
+    }
+
+    return uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first.toLowerCase() == 'invite';
+  }
+
+  String? _parseInviteCode(Uri uri) {
+    final queryCode = uri.queryParameters['code']?.trim();
+    if (queryCode != null && queryCode.isNotEmpty) {
+      return queryCode;
+    }
+
+    final segments =
+        uri.pathSegments.where((segment) => segment.trim().isNotEmpty).toList();
+
+    // splitbills://invite/<code>
+    if (uri.host.toLowerCase() == 'invite') {
+      if (segments.isEmpty) {
+        return null;
+      }
+      final candidate = segments.first.trim();
+      return candidate.isNotEmpty ? candidate : null;
+    }
+
+    // splitbills://invite/<code> (경로 기반)
+    if (segments.isNotEmpty && segments.first.toLowerCase() == 'invite') {
+      if (segments.length < 2) {
+        return null;
+      }
+      final candidate = segments[1].trim();
+      return candidate.isNotEmpty ? candidate : null;
+    }
+
+    return null;
   }
 
   Future<void> _handleAuthCallback(Uri uri) async {
