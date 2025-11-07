@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'retry_button.dart';
+
 /// 공통 에러 표시 위젯
 /// 
 /// 에러 발생 시 사용자에게 표시할 에러 메시지와 재시도 버튼을 제공합니다.
@@ -50,10 +52,7 @@ class ErrorView extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('다시 시도'),
-              ),
+              RetryButton(onPressed: onRetry!),
             ],
           ],
         ),
@@ -61,4 +60,3 @@ class ErrorView extends StatelessWidget {
     );
   }
 }
-

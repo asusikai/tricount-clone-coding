@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../presentation/widgets/common/retry_button.dart';
+
 typedef RetryCallback = Future<void> Function();
 
 class BootstrapErrorPage extends StatelessWidget {
@@ -54,13 +56,7 @@ class BootstrapErrorPage extends StatelessWidget {
                     _TechnicalDetailsBox(details: technicalDetails!),
                   ],
                   const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: () {
-                      onRetry();
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('다시 시도'),
-                  ),
+                  RetryButton(onPressed: onRetry),
                 ],
               ),
             ),

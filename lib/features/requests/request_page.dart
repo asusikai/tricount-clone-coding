@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common/models/payment_request.dart';
 import '../../common/services/request_service.dart';
 import '../../core/utils/utils.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class RequestPage extends ConsumerStatefulWidget {
   const RequestPage({super.key, required this.requestId});
@@ -68,7 +69,11 @@ class _RequestPageState extends ConsumerState<RequestPage> {
       body: asyncRequest.when(
         data: (request) {
           if (request == null) {
-            return const Center(child: Text('요청을 찾을 수 없습니다.'));
+            return const EmptyStateView(
+              icon: Icons.error_outline,
+              title: '요청을 찾을 수 없습니다.',
+              message: '삭제되었거나 접근 권한이 없는 요청입니다.',
+            );
           }
 
           final user = Supabase.instance.client.auth.currentUser;
@@ -181,10 +186,16 @@ class _RequestPageState extends ConsumerState<RequestPage> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LoadingView(),
         error: (error, stackTrace) {
           debugPrint('요청 상세 로드 실패: $error\n$stackTrace');
-          return const Center(child: Text('요청 정보를 불러오지 못했습니다.'));
+          return ErrorView(
+            error: error,
+            title: '요청 정보를 불러오지 못했습니다.',
+            onRetry: () => ref.invalidate(
+              requestDetailProvider(widget.requestId),
+            ),
+          );
         },
       ),
     );
