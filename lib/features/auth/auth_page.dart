@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
 import '../../core/constants/constants.dart';
+import '../../presentation/providers/providers.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key});

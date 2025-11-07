@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/models/payment_request.dart';
-import '../../common/services/request_service.dart';
 import '../../core/utils/utils.dart';
+import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
 class RequestsTab extends ConsumerStatefulWidget {

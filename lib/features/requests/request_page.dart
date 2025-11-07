@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/models/payment_request.dart';
-import '../../common/services/request_service.dart';
 import '../../core/utils/utils.dart';
+import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
 class RequestPage extends ConsumerStatefulWidget {
@@ -35,20 +35,14 @@ class _RequestPageState extends ConsumerState<RequestPage> {
       if (!mounted) {
         return;
       }
-      SnackBarHelper.showSuccess(
-        context,
-        '요청 상태가 ${status.label}으로 변경되었습니다.',
-      );
+      SnackBarHelper.showSuccess(context, '요청 상태가 ${status.label}으로 변경되었습니다.');
       Navigator.of(context).pop(true);
     } catch (error) {
       debugPrint('요청 상태 변경 실패: $error');
       if (!mounted) {
         return;
       }
-      SnackBarHelper.showError(
-        context,
-        '상태 변경 실패: $error',
-      );
+      SnackBarHelper.showError(context, '상태 변경 실패: $error');
     } finally {
       if (mounted) {
         setState(() {
@@ -63,9 +57,7 @@ class _RequestPageState extends ConsumerState<RequestPage> {
     final asyncRequest = ref.watch(requestDetailProvider(widget.requestId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('송금 요청 상세'),
-      ),
+      appBar: AppBar(title: const Text('송금 요청 상세')),
       body: asyncRequest.when(
         data: (request) {
           if (request == null) {
@@ -79,7 +71,8 @@ class _RequestPageState extends ConsumerState<RequestPage> {
           final user = Supabase.instance.client.auth.currentUser;
           final isIncoming = user != null && request.isIncoming(user.id);
           final otherUser = isIncoming ? request.fromUser : request.toUser;
-          final otherName = (otherUser?['nickname'] as String?) ??
+          final otherName =
+              (otherUser?['nickname'] as String?) ??
               (otherUser?['name'] as String?) ??
               (otherUser?['email'] as String?) ??
               '알 수 없음';
@@ -131,9 +124,7 @@ class _RequestPageState extends ConsumerState<RequestPage> {
                       children: [
                         Text(
                           '${request.amount.toStringAsFixed(2)} ${request.currency}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
+                          style: Theme.of(context).textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
@@ -156,18 +147,14 @@ class _RequestPageState extends ConsumerState<RequestPage> {
                 const SizedBox(height: 16),
                 ListTile(
                   leading: const Icon(Icons.call_made),
-                  title: Text(
-                    request.fromUser?['name'] as String? ?? '요청자',
-                  ),
+                  title: Text(request.fromUser?['name'] as String? ?? '요청자'),
                   subtitle: Text(request.fromUser?['email'] as String? ?? ''),
                   trailing: const Text('요청자'),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.call_received),
-                  title: Text(
-                    request.toUser?['name'] as String? ?? '수신자',
-                  ),
+                  title: Text(request.toUser?['name'] as String? ?? '수신자'),
                   subtitle: Text(request.toUser?['email'] as String? ?? ''),
                   trailing: const Text('수신자'),
                 ),
@@ -176,10 +163,12 @@ class _RequestPageState extends ConsumerState<RequestPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      ...actionButtons.map((button) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: button,
-                          )),
+                      ...actionButtons.map(
+                        (button) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: button,
+                        ),
+                      ),
                     ],
                   ),
               ],
@@ -192,9 +181,8 @@ class _RequestPageState extends ConsumerState<RequestPage> {
           return ErrorView(
             error: error,
             title: '요청 정보를 불러오지 못했습니다.',
-            onRetry: () => ref.invalidate(
-              requestDetailProvider(widget.requestId),
-            ),
+            onRetry: () =>
+                ref.invalidate(requestDetailProvider(widget.requestId)),
           );
         },
       ),

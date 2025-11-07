@@ -277,8 +277,8 @@
             "id": 4,
             "title": "Provider 분리",
             "description": "각 서비스 파일에서 Provider 정의를 presentation/providers/ 디렉토리로 분리",
-            "details": "- lib/presentation/providers/auth_providers.dart: authServiceProvider 등\n- lib/presentation/providers/group_providers.dart: groupServiceProvider, userGroupsProvider 등\n- lib/presentation/providers/request_providers.dart: requestServiceProvider, requestListProvider 등\n- lib/presentation/providers/profile_providers.dart: profileServiceProvider 등\n- lib/presentation/providers/bank_account_providers.dart: bankAccountServiceProvider 등\n- 기존 서비스 파일에서 Provider 정의 제거하고 새 파일로 이동",
-            "status": "pending",
+            "details": "- lib/presentation/providers/auth_providers.dart: authServiceProvider 등\n- lib/presentation/providers/group_providers.dart: groupServiceProvider, userGroupsProvider 등\n- lib/presentation/providers/request_providers.dart: requestServiceProvider, requestListProvider 등\n- lib/presentation/providers/profile_providers.dart: profileServiceProvider 등\n- lib/presentation/providers/bank_account_providers.dart: bankAccountServiceProvider 등\n- 기존 서비스 파일에서 Provider 정의 제거하고 새 파일로 이동\n<info added on 2025-11-07T16:23:40.279Z>\nProvider 분리 및 배럴 구성 완료\n- 생성 파일 및 Provider:\n  - lib/presentation/providers/group_providers.dart: groupDetailProvider, groupMembersProvider 추가\n  - lib/presentation/providers/request_providers.dart: requestDetailProvider 추가\n  - lib/presentation/providers/providers.dart: 배럴 파일 생성 및 모든 Provider export\n\n서비스 파일에서 Provider 및 flutter_riverpod 의존 제거 완료\n- lib/common/services/auth_service.dart\n- lib/common/services/group_service.dart\n- lib/common/services/request_service.dart\n- lib/common/services/profile_service.dart\n- lib/common/services/bank_account_service.dart\n\n기존 코드 import 정리\n- Provider 사용처를 배럴 파일로 통일\n  - lib/features/auth/auth_page.dart:8 → ../../presentation/providers/providers.dart\n  - lib/features/group/group_create_page.dart:7 → ../../presentation/providers/providers.dart\n  - lib/features/requests/request_register_page.dart:8 → ../../presentation/providers/providers.dart\n  - lib/features/requests/request_list_tab.dart:11 → ../../presentation/providers/providers.dart\n  - lib/features/profile/profile_page.dart:11 → ../../presentation/providers/providers.dart\n- 서비스 클래스의 정적 메서드 직접 사용은 유지 (예: AuthService.clearAuthError)\n\n품질\n- flutter analyze 기준 린트 경고/에러 0 확인\n</info added on 2025-11-07T16:23:40.279Z>",
+            "status": "done",
             "dependencies": [],
             "parentTaskId": 11,
             "parentId": "undefined"
@@ -347,7 +347,7 @@
       ],
       "created": "2025-11-07T16:15:16.946Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-07T16:18:15.624Z"
+      "updated": "2025-11-07T16:23:40.753Z"
     }
   }
 }

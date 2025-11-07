@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../common/services/request_service.dart';
 import '../../core/constants/constants.dart';
+import '../../presentation/providers/providers.dart';
 import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';

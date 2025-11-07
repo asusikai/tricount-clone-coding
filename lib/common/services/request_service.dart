@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/payment_request.dart';
@@ -176,24 +175,3 @@ class RequestService {
         .toList(growable: false);
   }
 }
-
-final requestServiceProvider = Provider<RequestService>((ref) {
-  return RequestService(Supabase.instance.client);
-});
-
-final requestListProvider = FutureProvider.autoDispose
-    .family<List<PaymentRequest>, PaymentRequestStatus?>((ref, status) async {
-  final user = Supabase.instance.client.auth.currentUser;
-  if (user == null) {
-    return <PaymentRequest>[];
-  }
-
-  final service = ref.watch(requestServiceProvider);
-  return service.fetchRequests(userId: user.id, status: status);
-});
-
-final requestDetailProvider = FutureProvider.autoDispose
-    .family<PaymentRequest?, String>((ref, requestId) async {
-  final service = ref.watch(requestServiceProvider);
-  return service.fetchRequest(requestId);
-});

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -313,26 +312,4 @@ class GroupService {
     return null;
   }
 }
-
-final groupServiceProvider = Provider<GroupService>((ref) {
-  return GroupService(Supabase.instance.client);
-});
-
-final userGroupsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final groupService = ref.read(groupServiceProvider);
-  return groupService.getUserGroups();
-});
-
-final groupDetailProvider = FutureProvider.autoDispose
-    .family<Map<String, dynamic>, String>((ref, groupId) async {
-  final groupService = ref.read(groupServiceProvider);
-  return groupService.getGroupDetail(groupId);
-});
-
-final groupMembersProvider = FutureProvider.autoDispose
-    .family<List<Map<String, dynamic>>, String>((ref, groupId) async {
-  final groupService = ref.read(groupServiceProvider);
-  return groupService.getGroupMembers(groupId);
-});
 

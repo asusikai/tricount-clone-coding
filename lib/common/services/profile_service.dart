@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileService {
@@ -45,7 +44,3 @@ class ProfileService {
     }
   }
 }
-
-final profileServiceProvider = Provider<ProfileService>((ref) {
-  return ProfileService(Supabase.instance.client);
-});

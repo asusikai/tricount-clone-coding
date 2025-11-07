@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/environment.dart';
@@ -215,7 +214,3 @@ class AuthService {
     return null;
   }
 }
-
-final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService(Supabase.instance.client);
-});

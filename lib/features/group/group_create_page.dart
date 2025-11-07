@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../common/services/group_service.dart';
 import '../../core/constants/constants.dart';
 import '../../core/utils/utils.dart';
+import '../../presentation/providers/providers.dart';
 
 class GroupCreatePage extends ConsumerStatefulWidget {
   const GroupCreatePage({super.key});

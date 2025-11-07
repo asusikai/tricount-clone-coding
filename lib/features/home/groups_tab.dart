@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../common/services/group_service.dart';
 import '../../core/constants/constants.dart';
+import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupsTab extends ConsumerStatefulWidget {
