@@ -297,8 +297,8 @@
             "id": 6,
             "title": "Repository 패턴 도입",
             "description": "domain/repositories 인터페이스 정의 및 data/repositories 구현체 생성",
-            "details": "- lib/domain/repositories/ 디렉토리에 Repository 인터페이스 정의\n  - group_repository.dart\n  - request_repository.dart\n  - auth_repository.dart\n  - profile_repository.dart\n  - bank_account_repository.dart\n- lib/data/repositories/ 디렉토리에 Supabase 기반 구현체 생성\n- 기존 서비스 로직을 Repository 구현체로 이동\n- 서비스는 Repository를 통해 데이터 접근하도록 변경",
-            "status": "pending",
+            "details": "- lib/domain/repositories/ 디렉토리에 Repository 인터페이스 정의\n  - group_repository.dart\n  - request_repository.dart\n  - auth_repository.dart\n  - profile_repository.dart\n  - bank_account_repository.dart\n- lib/data/repositories/ 디렉토리에 Supabase 기반 구현체 생성\n- 기존 서비스 로직을 Repository 구현체로 이동\n- 서비스는 Repository를 통해 데이터 접근하도록 변경\n<info added on 2025-11-07T20:13:05.867Z>\nRepository 패턴 도입 완료\n\n생성된 파일\n- lib/domain/repositories/\n  - group_repository.dart: GroupRepository 인터페이스 정의\n  - request_repository.dart: RequestRepository 인터페이스 정의\n  - auth_repository.dart: AuthRepository 인터페이스 정의\n  - profile_repository.dart: ProfileRepository 인터페이스 정의\n  - bank_account_repository.dart: BankAccountRepository 인터페이스 정의\n  - repositories.dart: 배럴 파일(export)\n- lib/data/repositories/\n  - group_repository_impl.dart: GroupRepositoryImpl(기존 GroupService 로직 이관)\n  - request_repository_impl.dart: RequestRepositoryImpl(기존 RequestService 로직 이관)\n  - auth_repository_impl.dart: AuthRepositoryImpl(기존 AuthService 로직 이관)\n  - profile_repository_impl.dart: ProfileRepositoryImpl(기존 ProfileService 로직 이관)\n  - bank_account_repository_impl.dart: BankAccountRepositoryImpl(기존 BankAccountService 로직 이관)\n  - repositories.dart: 배럴 파일(export)\n\n서비스 리팩토링\n- 모든 서비스가 Repository 의존성 주입(생성자) 방식으로 변경\n- 하위 호환을 위해 fromClient(SupabaseClient client) 팩토리 추가\n  - fromClient 내부에서 대응하는 RepositoryImpl로 감싸서 생성\n- 서비스의 공개 메서드는 내부적으로 Repository 메서드로 위임\n\nProvider 업데이트\n- 기존 Provider 명/시그니처 유지\n- Provider 생성 시 Service.fromClient(Supabase.instance.client) 사용으로 통일\n- 파일 레퍼런스(서비스별 Provider 포함): \n  - lib/common/services/auth_service.dart\n  - lib/common/services/group_service.dart\n  - lib/common/services/request_service.dart\n  - lib/common/services/profile_service.dart\n  - lib/common/services/bank_account_service.dart\n\n배럴/임포트 규칙\n- lib/domain/repositories/repositories.dart 에서 모든 인터페이스 export\n- lib/data/repositories/repositories.dart 에서 모든 구현체 export\n- 서비스/Provider 내 임포트 예시:\n  - import 'package:…/domain/repositories/repositories.dart';\n  - import 'package:…/data/repositories/repositories.dart';\n\n품질/검증\n- flutter analyze 무경고 상태 확인\n- 순환 의존성 없음(서비스→도메인 인터페이스, 구현은 data 레이어에만 위치)\n- 기존 API/Provider 외부 계약은 변경 없음(내부 구현만 Repository로 대체)\n\n마이그레이션 노트\n- 서비스 파일에서 직접 SupabaseClient 접근 코드 제거\n- 예: client.from('groups')… 호출부 → GroupRepository로 위임\n- 페이지/위젯 레벨 로직 변경 불필요(서비스 API 유지)\n\n후속 작업 연결\n- UseCase 레이어에서 도메인 Repository 인터페이스를 직접 의존하도록 설계 예정(11.7 연계)\n</info added on 2025-11-07T20:13:05.867Z>",
+            "status": "done",
             "dependencies": [],
             "parentTaskId": 11,
             "parentId": "undefined"
@@ -347,7 +347,7 @@
       ],
       "created": "2025-11-07T16:15:16.946Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-07T16:29:29.782Z"
+      "updated": "2025-11-07T20:13:06.539Z"
     }
   }
 }

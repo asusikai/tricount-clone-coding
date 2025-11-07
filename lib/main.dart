@@ -474,7 +474,7 @@ class _MyAppState extends State<MyApp> {
 
     _processingInviteCodes.add(inviteCode);
     try {
-      final groupService = GroupService(client);
+      final groupService = GroupService.fromClient(client);
       final groupId = await groupService.joinGroupByInviteCode(inviteCode);
       debugPrint('그룹 가입 성공: $groupId');
       _completedInviteCodes.add(inviteCode);
@@ -677,7 +677,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _processSuccessfulLogin(SupabaseClient client) async {
     // 프로필 동기화 시도
     try {
-      await AuthService(client).syncUserProfile();
+      await AuthService.fromClient(client).syncUserProfile();
       debugPrint('프로필 동기화 성공');
     } catch (profileError, stackTrace) {
       debugPrint('프로필 동기화 실패: $profileError');

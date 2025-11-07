@@ -5,7 +5,7 @@ import '../../common/services/group_service.dart';
 
 /// 그룹 서비스 Provider
 final groupServiceProvider = Provider<GroupService>((ref) {
-  return GroupService(Supabase.instance.client);
+  return GroupService.fromClient(Supabase.instance.client);
 });
 
 /// 사용자의 그룹 목록 Provider

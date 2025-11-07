@@ -5,6 +5,6 @@ import '../../common/services/auth_service.dart';
 
 /// 인증 서비스 Provider
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService(Supabase.instance.client);
+  return AuthService.fromClient(Supabase.instance.client);
 });
 

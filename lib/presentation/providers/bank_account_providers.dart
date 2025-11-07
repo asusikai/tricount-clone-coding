@@ -5,6 +5,6 @@ import '../../common/services/bank_account_service.dart';
 
 /// 계좌 서비스 Provider
 final bankAccountServiceProvider = Provider<BankAccountService>((ref) {
-  return BankAccountService(Supabase.instance.client);
+  return BankAccountService.fromClient(Supabase.instance.client);
 });
 

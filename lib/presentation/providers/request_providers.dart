@@ -6,7 +6,7 @@ import '../../common/services/request_service.dart';
 
 /// 요청 서비스 Provider
 final requestServiceProvider = Provider<RequestService>((ref) {
-  return RequestService(Supabase.instance.client);
+  return RequestService.fromClient(Supabase.instance.client);
 });
 
 /// 요청 목록 Provider

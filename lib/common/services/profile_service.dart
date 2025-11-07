@@ -1,57 +1,26 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/errors/errors.dart';
+import '../../data/repositories/profile_repository_impl.dart';
+import '../../domain/repositories/profile_repository.dart';
 
+/// 프로필 관련 서비스 클래스
+/// 
+/// 내부적으로 ProfileRepository를 사용하여 데이터 접근을 처리합니다.
 class ProfileService {
-  const ProfileService(this._client);
+  ProfileService(this._repository);
 
-  final SupabaseClient _client;
+  final ProfileRepository _repository;
 
-  Future<Map<String, dynamic>?> fetchProfile(String userId) async {
-    try {
-      final response = await _client
-          .from('users')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
-      return response != null ? Map<String, dynamic>.from(response) : null;
-    } catch (error, stackTrace) {
-      throw ErrorHandler.handleAndLog(
-        error,
-        stackTrace: stackTrace,
-        context: '프로필 조회 실패',
-      );
-    }
-  }
+  /// SupabaseClient를 직접 받는 생성자 (하위 호환성)
+  ProfileService.fromClient(SupabaseClient client)
+      : _repository = ProfileRepositoryImpl(client);
 
-  Future<void> updateName(String userId, String name) async {
-    try {
-      await _client
-          .from('users')
-          .update({'name': name.trim()})
-          .eq('id', userId);
-    } catch (error, stackTrace) {
-      throw ErrorHandler.handleAndLog(
-        error,
-        stackTrace: stackTrace,
-        context: '프로필 이름 업데이트 실패',
-      );
-    }
-  }
+  Future<Map<String, dynamic>?> fetchProfile(String userId) =>
+      _repository.fetchProfile(userId);
 
-  Future<void> updateNickname(String userId, String nickname) async {
-    try {
-      await _client
-          .from('users')
-          .update({'nickname': nickname.trim()})
-          .eq('id', userId);
-    } catch (error, stackTrace) {
-      throw ErrorHandler.handleAndLog(
-        error,
-        stackTrace: stackTrace,
-        context: '닉네임 업데이트 실패',
-      );
-    }
-  }
+  Future<void> updateName(String userId, String name) =>
+      _repository.updateName(userId, name);
+
+  Future<void> updateNickname(String userId, String nickname) =>
+      _repository.updateNickname(userId, nickname);
 }
