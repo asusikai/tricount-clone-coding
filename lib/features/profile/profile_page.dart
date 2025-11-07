@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
 import '../../common/services/bank_account_service.dart';
+import '../../core/utils/utils.dart';
 import '../../common/services/profile_service.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -398,14 +398,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _copyAccountNumber(String accountNumber) async {
-    await Clipboard.setData(ClipboardData(text: accountNumber));
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(
+    await ClipboardHelper.copyTextWithFeedback(
       context,
-    ).showSnackBar(const SnackBar(content: Text('계좌번호가 복사되었습니다.')));
+      accountNumber,
+      successMessage: '계좌번호가 복사되었습니다.',
+    );
   }
 
   String _maskedAccountNumber(String value) {

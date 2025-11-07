@@ -16,14 +16,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
   final _nameController = TextEditingController();
   String _selectedCurrency = 'KRW';
 
-  final List<String> _currencies = [
-    'KRW',
-    'USD',
-    'EUR',
-    'JPY',
-    'CNY',
-    'GBP',
-  ];
+  final List<String> _currencies = ['KRW', 'USD', 'EUR', 'JPY', 'CNY', 'GBP'];
 
   @override
   void dispose() {
@@ -37,7 +30,9 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
     }
 
     try {
-      final groupId = await ref.read(groupServiceProvider).createGroup(
+      final groupId = await ref
+          .read(groupServiceProvider)
+          .createGroup(
             name: _nameController.text.trim(),
             baseCurrency: _selectedCurrency,
           );
@@ -70,9 +65,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('새 그룹 만들기'),
-      ),
+      appBar: AppBar(title: const Text('새 그룹 만들기')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -105,10 +98,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
                 border: OutlineInputBorder(),
               ),
               items: _currencies.map((currency) {
-                return DropdownMenuItem(
-                  value: currency,
-                  child: Text(currency),
-                );
+                return DropdownMenuItem(value: currency, child: Text(currency));
               }).toList(),
               onChanged: (value) {
                 if (value != null) {
@@ -132,4 +122,3 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
     );
   }
 }
-
