@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../common/services/group_service.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupPage extends ConsumerWidget {
   const GroupPage({super.key, required this.groupId});
@@ -69,7 +70,7 @@ class GroupPage extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _GroupErrorView(
+        error: (error, stackTrace) => ErrorView(
           error: error,
           onRetry: () => unawaited(_refresh(ref)),
         ),
@@ -149,14 +150,14 @@ class _GroupSummaryCard extends StatelessWidget {
           children: [
             Text('그룹 정보', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            _InfoRow(
+            InfoRow(
               icon: Icons.payments_outlined,
               label: '기본 통화',
               value: baseCurrency,
             ),
             if (createdText != null) ...[
               const SizedBox(height: 12),
-              _InfoRow(
+              InfoRow(
                 icon: Icons.calendar_month_outlined,
                 label: '생성일',
                 value: createdText,
@@ -167,7 +168,7 @@ class _GroupSummaryCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _InfoRow(
+                    child: InfoRow(
                       icon: Icons.qr_code_2_outlined,
                       label: '초대 코드',
                       value: inviteCode,
