@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../common/services/group_service.dart';
+import '../../core/utils/utils.dart';
 
 class GroupCreatePage extends ConsumerStatefulWidget {
   const GroupCreatePage({super.key});
@@ -39,12 +40,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('그룹이 생성되었습니다.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      SnackBarHelper.showSuccess(context, '그룹이 생성되었습니다.');
 
       ref.invalidate(userGroupsProvider);
 
@@ -53,12 +49,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('그룹 생성 실패: $e'),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      SnackBarHelper.showError(context, '그룹 생성 실패: $e');
     }
   }
 

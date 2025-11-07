@@ -69,9 +69,10 @@ class GroupPage extends ConsumerWidget {
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const LoadingView(),
         error: (error, stackTrace) => ErrorView(
           error: error,
+          title: '그룹 정보를 불러오지 못했습니다.',
           onRetry: () => unawaited(_refresh(ref)),
         ),
       ),
@@ -242,25 +243,13 @@ class _GroupMembersSection extends StatelessWidget {
                       .toList(growable: false),
                 );
               },
-              loading: () => const Padding(
+              loading: () => const LoadingView(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
               ),
-              error: (error, stackTrace) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '멤버 정보를 불러오지 못했습니다.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
+              error: (error, stackTrace) => ErrorView(
+                error: error,
+                title: '멤버 정보를 불러오지 못했습니다.',
+                onRetry: null,
               ),
             ),
           ],

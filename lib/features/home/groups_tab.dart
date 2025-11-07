@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +25,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
 
   Future<void> _refreshGroups() async {
     try {
-      final _ = await ref.refresh(userGroupsProvider.future);
+      await ref.refresh(userGroupsProvider.future);
     } catch (error, stackTrace) {
       debugPrint('그룹 새로고침 실패: $error\n$stackTrace');
       rethrow;
@@ -131,7 +129,6 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     );
   }
 
-  Future<void> _shareGroupInvite(String groupId, String groupName) async {
     setState(() {
       _sharingGroupId = groupId;
     });
