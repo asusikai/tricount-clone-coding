@@ -479,7 +479,10 @@ class _MyAppState extends State<MyApp> {
       debugPrint('그룹 가입 성공: $groupId');
       _completedInviteCodes.add(inviteCode);
       _showDeepLinkMessage('그룹에 가입되었습니다.');
-      _safeNavigate(HomeTab.groups.routePath);
+      final route = groupId.isEmpty
+          ? HomeTab.groups.routePath
+          : '/groups/${Uri.encodeComponent(groupId)}';
+      _safeNavigate(route);
     } catch (error, stackTrace) {
       debugPrint('그룹 초대 처리 실패 ($inviteCode): $error');
       debugPrint('스택 트레이스: $stackTrace');

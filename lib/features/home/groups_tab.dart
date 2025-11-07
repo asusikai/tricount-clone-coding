@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -112,10 +113,11 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
                 const Icon(Icons.chevron_right),
               ],
             ),
-            onTap: () {
-              // TODO: GroupPage로 이동
-              debugPrint('그룹 선택: $groupId');
-            },
+            onTap: groupId.isEmpty
+                ? null
+                : () {
+                    context.go('/groups/$groupId');
+                  },
           ),
         );
       },

@@ -118,7 +118,7 @@
         "testStrategy": "- 링크 파싱 유닛 테스트(유효/무효/누락 코드).\n- 앱 실행 중/비실행 상태 모두 링크 처리 수동 검증.\n- RPC 실패/중복 가입 예외 처리 확인.",
         "priority": "medium",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -126,7 +126,7 @@
             "description": "초대 링크 스킴을 splitbills://invite?code= 로 통일하고, 링크 생성 함수와 공유(share_plus) 액션을 추가합니다. 기존 tricount 스킴은 하위 호환 처리합니다.",
             "dependencies": [],
             "details": "- Android IntentFilter, iOS URL Types에 스킴 splitbills와 호스트 invite를 등록합니다. - 초대 코드로 splitbills://invite?code={code} URL을 생성하는 유틸/서비스 메서드를 추가 또는 기존 getInviteLink를 수정합니다. - 그룹 화면에 ‘초대 공유’ 버튼을 배치하고 share_plus로 링크를 공유합니다. - 기존 tricount://group/join?code= 링크는 생성 중지하되, 수신 시에도 처리될 수 있도록 파서에서 임시 대응합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "- 링크 문자열 생성 단위 테스트: 유효 코드 → 기대 URL 일치 확인. - Android/iOS에서 실제 공유 호출 시 예외 없이 동작 수동 확인. - 기존 tricount 스킴 입력 시 생성되지 않음을 확인.",
             "parentId": "undefined"
           },
@@ -138,7 +138,7 @@
               1
             ],
             "details": "- DeepLink 처리 모듈/서비스를 만들고 앱 시작(getInitialLink)과 실행 중(linkStream) 모두 구독합니다. - Uri.parse로 code를 추출하고 splitbills 스킴과 /invite 경로를 우선 처리, 기존 tricount 포맷은 임시 변환합니다. - 인증 미완료 상태면 큐에 보관 후 로그인 완료 이벤트 시 재처리합니다. - 중복 호출 방지를 위해 동일 링크 재실행 락/디바운스 적용 및 예외 로깅을 추가합니다. - 성공 시 RPC 응답의 group 식별자를 받아 라우팅용 이벤트를 발행합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "- 링크 파서 유닛 테스트: 정상/누락/잘못된 스킴/기존 tricount 포맷. - 콜드 스타트(getInitialLink)와 웜 스타트(linkStream) 시나리오 모킹 테스트. - RPC 성공/실패/중복 가입 에러 모킹으로 분기 검증.",
             "parentId": "undefined"
           },
@@ -151,7 +151,7 @@
               2
             ],
             "details": "- RPC 에러 코드를 사용자 친화 메시지(만료 코드, 권한 없음, 네트워크 오류, 이미 가입 등)로 매핑해 SnackBar/Dialog로 노출합니다. - 재시도 액션을 제공하고, 네비게이션은 성공 시 GroupPage로 이동하면서 백스택 정리 정책을 문서화/적용합니다. - 처리 결과를 로깅(디버그/선택적 Crashlytics)하고, 텔레메트리 이벤트 키를 표준화합니다. - 동일 링크 재처리 방지를 위한 완료 상태 표시 및 UX 피드백(로딩 인디케이터/완료 토스트)을 제공합니다.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "- 위젯 테스트: 실패 시 다이얼로그/스낵바 노출과 재시도 액션 동작. - 중복 가입 에러 모킹 시 안내 메시지와 리다이렉트 미발생 확인. - 성공 시 GroupPage로 이동 및 백스택 정책 수동 검증.",
             "parentId": "undefined"
           }

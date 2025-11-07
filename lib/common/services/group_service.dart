@@ -193,6 +193,32 @@ class GroupService {
     return [];
   }
 
+  /// 그룹 상세 정보 조회
+  Future<Map<String, dynamic>> getGroupDetail(String groupId) async {
+    try {
+      final user = _client.auth.currentUser;
+      if (user == null) {
+        throw Exception('로그인이 필요합니다.');
+      }
+
+      final response = await _client
+          .from('groups')
+          .select('id, name, base_currency, invite_code, owner_id, created_at')
+          .eq('id', groupId)
+          .maybeSingle();
+
+      if (response == null) {
+        throw StateError('그룹을 찾을 수 없습니다.');
+      }
+
+      return response;
+    } catch (error, stackTrace) {
+      debugPrint('그룹 상세 조회 실패: $error');
+      debugPrint('스택 트레이스: $stackTrace');
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
   /// 그룹 삭제 (소유자만 가능)
   Future<void> deleteGroup(String groupId) async {
     try {
@@ -297,5 +323,17 @@ final userGroupsProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final groupService = ref.read(groupServiceProvider);
   return groupService.getUserGroups();
+});
+
+final groupDetailProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>, String>((ref, groupId) async {
+  final groupService = ref.read(groupServiceProvider);
+  return groupService.getGroupDetail(groupId);
+});
+
+final groupMembersProvider = FutureProvider.autoDispose
+    .family<List<Map<String, dynamic>>, String>((ref, groupId) async {
+  final groupService = ref.read(groupServiceProvider);
+  return groupService.getGroupMembers(groupId);
 });
 

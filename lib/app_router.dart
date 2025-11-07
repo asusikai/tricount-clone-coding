@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import 'features/auth/auth_page.dart';
 import 'features/group/group_create_page.dart';
+import 'features/group/group_page.dart';
 import 'features/home/home_page.dart';
 import 'features/requests/request_page.dart';
 import 'features/requests/request_register_page.dart';
@@ -20,6 +21,17 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(path: '/group/create', builder: (_, _) => const GroupCreatePage()),
+    GoRoute(
+      path: '/groups/:id',
+      builder: (_, state) {
+        final rawGroupId = state.pathParameters['id'];
+        if (rawGroupId == null || rawGroupId.isEmpty) {
+          return const HomePage(initialTab: HomeTab.groups);
+        }
+        final groupId = Uri.decodeComponent(rawGroupId);
+        return GroupPage(groupId: groupId);
+      },
+    ),
 
     GoRoute(
       path: '/requests/register',
