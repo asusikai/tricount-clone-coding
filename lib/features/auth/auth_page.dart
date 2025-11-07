@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
+import '../../core/constants/constants.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
   const AuthPage({super.key});
@@ -100,7 +101,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                   try {
                     await ref.read(authServiceProvider).signOut();
                     if (!mounted || !context.mounted) return;
-                    context.go('/home');
+                    context.go(RouteConstants.home);
                   } catch (e, stackTrace) {
                     debugPrint('로그아웃 실패: $e');
                     debugPrint('스택 트레이스: $stackTrace');

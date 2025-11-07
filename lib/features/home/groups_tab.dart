@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/group_service.dart';
+import '../../core/constants/constants.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupsTab extends ConsumerStatefulWidget {
@@ -130,7 +131,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
             onTap: groupId.isEmpty
                 ? null
                 : () {
-                    context.go('/groups/$groupId');
+                    context.go(RouteConstants.groupDetail(groupId));
                   },
           ),
         );

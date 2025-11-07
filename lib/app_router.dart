@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import 'core/constants/constants.dart';
 import 'features/auth/auth_page.dart';
 import 'features/group/group_create_page.dart';
 import 'features/group/group_page.dart';
@@ -9,18 +10,18 @@ import 'features/requests/request_register_page.dart';
 import 'features/splash/splash_page.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/splash',
+  initialLocation: RouteConstants.splash,
   routes: [
-    GoRoute(path: '/', redirect: (_, _) => '/splash'),
-    GoRoute(path: '/splash', builder: (_, _) => const SplashPage()),
-    GoRoute(path: '/auth', builder: (_, _) => const AuthPage()),
+    GoRoute(path: '/', redirect: (_, _) => RouteConstants.splash),
+    GoRoute(path: RouteConstants.splash, builder: (_, _) => const SplashPage()),
+    GoRoute(path: RouteConstants.auth, builder: (_, _) => const AuthPage()),
     GoRoute(
-      path: '/home',
+      path: RouteConstants.home,
       builder: (_, state) => HomePage(
         initialTab: HomeTabX.fromName(state.uri.queryParameters['tab']),
       ),
     ),
-    GoRoute(path: '/group/create', builder: (_, _) => const GroupCreatePage()),
+    GoRoute(path: RouteConstants.groupCreate, builder: (_, _) => const GroupCreatePage()),
     GoRoute(
       path: '/groups/:id',
       builder: (_, state) {
@@ -34,7 +35,7 @@ final appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: '/requests/register',
+      path: RouteConstants.requestRegister,
       builder: (_, _) => const RequestRegisterPage(),
     ),
     GoRoute(
@@ -48,8 +49,8 @@ final appRouter = GoRouter(
       },
     ),
 
-    GoRoute(path: '/auth/kakao', builder: (_, _) => const SplashPage()),
-    GoRoute(path: '/auth/google', builder: (_, _) => const SplashPage()),
-    GoRoute(path: '/auth/apple', builder: (_, _) => const SplashPage()),
+    GoRoute(path: RouteConstants.authKakao, builder: (_, _) => const SplashPage()),
+    GoRoute(path: RouteConstants.authGoogle, builder: (_, _) => const SplashPage()),
+    GoRoute(path: RouteConstants.authApple, builder: (_, _) => const SplashPage()),
   ],
 );

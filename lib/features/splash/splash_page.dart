@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
+import '../../core/constants/constants.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -28,14 +29,14 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session == null) {
-      context.go('/auth');
+      context.go(RouteConstants.auth);
     } else {
       try {
         await ref.read(authServiceProvider).syncUserProfile();
       } catch (error) {
         debugPrint('사용자 프로필 동기화 실패: $error');
       }
-      context.go('/home');
+      context.go(RouteConstants.home);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../common/services/request_service.dart';
+import '../../core/constants/constants.dart';
 import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';
@@ -102,7 +103,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       case HomeTab.groups:
         return FloatingActionButton(
           onPressed: () {
-            context.go('/group/create');
+            context.go(RouteConstants.groupCreate);
           },
           child: const Icon(Icons.add),
         );

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../common/services/group_service.dart';
+import '../../core/constants/constants.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupPage extends ConsumerWidget {
@@ -133,7 +134,7 @@ class _GroupSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseCurrency = detail['base_currency'] as String? ?? 'KRW';
+    final baseCurrency = detail['base_currency'] as String? ?? CurrencyConstants.defaultCurrency;
     final inviteCode = (detail['invite_code'] as String?) ?? '';
     final createdAtRaw = detail['created_at'] as String?;
     final createdAt = createdAtRaw == null

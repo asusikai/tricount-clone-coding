@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../common/services/group_service.dart';
+import '../../core/constants/constants.dart';
 import '../../core/utils/utils.dart';
 
 class GroupCreatePage extends ConsumerStatefulWidget {
@@ -15,9 +16,7 @@ class GroupCreatePage extends ConsumerStatefulWidget {
 class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  String _selectedCurrency = 'KRW';
-
-  final List<String> _currencies = ['KRW', 'USD', 'EUR', 'JPY', 'CNY', 'GBP'];
+  String _selectedCurrency = CurrencyConstants.defaultCurrency;
 
   @override
   void dispose() {
@@ -45,7 +44,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
       ref.invalidate(userGroupsProvider);
 
       // 홈으로 돌아가기
-      context.go('/home');
+      context.go(RouteConstants.home);
     } catch (e) {
       if (!mounted) return;
 
@@ -74,8 +73,8 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
                 if (value == null || value.trim().isEmpty) {
                   return '그룹 이름을 입력해주세요.';
                 }
-                if (value.trim().length > 50) {
-                  return '그룹 이름은 50자 이하여야 합니다.';
+                if (value.trim().length > AppConstants.maxGroupNameLength) {
+                  return '그룹 이름은 ${AppConstants.maxGroupNameLength}자 이하여야 합니다.';
                 }
                 return null;
               },
@@ -88,7 +87,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
                 labelText: '기본 통화',
                 border: OutlineInputBorder(),
               ),
-              items: _currencies.map((currency) {
+              items: CurrencyConstants.supportedCurrencies.map((currency) {
                 return DropdownMenuItem(value: currency, child: Text(currency));
               }).toList(),
               onChanged: (value) {
