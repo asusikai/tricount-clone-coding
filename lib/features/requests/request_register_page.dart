@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/utils/utils.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -62,8 +63,9 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('그룹 목록을 불러오지 못했습니다: $error')),
+      SnackBarHelper.showError(
+        context,
+        '그룹 목록을 불러오지 못했습니다: $error',
       );
     }
   }
@@ -99,8 +101,9 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
       setState(() {
         _isLoadingMembers = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('그룹 멤버를 불러오지 못했습니다: $error')),
+      SnackBarHelper.showError(
+        context,
+        '그룹 멤버를 불러오지 못했습니다: $error',
       );
     }
   }
@@ -108,9 +111,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
   Future<void> _submit() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인이 필요합니다.')),
-      );
+      SnackBarHelper.showError(context, '로그인이 필요합니다.');
       return;
     }
 
@@ -120,17 +121,16 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
 
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('금액을 올바르게 입력해주세요.')),
-      );
+      SnackBarHelper.showError(context, '금액을 올바르게 입력해주세요.');
       return;
     }
 
     final groupId = _selectedGroupId;
     final toUserId = _selectedUserId;
     if (groupId == null || toUserId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('그룹과 송금 받을 사용자를 선택해주세요.')),
+      SnackBarHelper.showError(
+        context,
+        '그룹과 송금 받을 사용자를 선택해주세요.',
       );
       return;
     }
@@ -158,18 +158,14 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('송금 요청이 등록되었습니다.')),
-      );
+      SnackBarHelper.showSuccess(context, '송금 요청이 등록되었습니다.');
       Navigator.of(context).pop(true);
     } catch (error) {
       debugPrint('요청 등록 실패: $error');
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('송금 요청 등록 실패: $error')),
-      );
+      SnackBarHelper.showError(context, '송금 요청 등록 실패: $error');
     } finally {
       if (mounted) {
         setState(() {

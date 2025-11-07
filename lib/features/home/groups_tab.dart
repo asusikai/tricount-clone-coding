@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/constants.dart';
+import '../../core/utils/utils.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -153,8 +154,9 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     } catch (error, stackTrace) {
       debugPrint('초대 링크 공유 실패: $error\n$stackTrace');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('초대 링크 공유에 실패했습니다. 다시 시도해주세요. ($error)')),
+        SnackBarHelper.showError(
+          context,
+          '초대 링크 공유에 실패했습니다. 다시 시도해주세요. ($error)',
         );
       }
     } finally {

@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/constants/constants.dart';
+import '../../core/utils/utils.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -106,20 +106,19 @@ class GroupPage extends ConsumerWidget {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('초대 링크를 공유할 수 없습니다. 다시 시도해주세요. ($error)')),
+      SnackBarHelper.showError(
+        context,
+        '초대 링크를 공유할 수 없습니다. 다시 시도해주세요. ($error)',
       );
     }
   }
 
   Future<void> _copyInviteCode(BuildContext context, String inviteCode) async {
-    await Clipboard.setData(ClipboardData(text: inviteCode));
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
+    await ClipboardHelper.copyTextWithFeedback(
       context,
-    ).showSnackBar(const SnackBar(content: Text('초대 코드가 복사되었습니다.')));
+      inviteCode,
+      successMessage: '초대 코드가 복사되었습니다.',
+    );
   }
 }
 

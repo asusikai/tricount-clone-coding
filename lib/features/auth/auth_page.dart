@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
 import '../../core/constants/constants.dart';
+import '../../core/utils/utils.dart';
 import '../../presentation/providers/providers.dart';
 
 class AuthPage extends ConsumerStatefulWidget {
@@ -22,15 +23,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final error = AuthService.lastAuthError;
       if (error != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: '확인',
-              onPressed: () {},
-            ),
-          ),
+        SnackBarHelper.showWithAction(
+          context,
+          error,
+          '확인',
+          () {},
+          duration: const Duration(seconds: 4),
         );
         // 에러 메시지 표시 후 초기화
         AuthService.clearAuthError();
@@ -51,11 +49,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       // 로그인 실패 시 시간 초기화 (AuthService에서도 처리되지만 확실히 하기 위해)
       AuthService.clearSignInAttemptTime();
       if (!context.mounted || !mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('로그인에 실패했습니다: $e'),
-          duration: const Duration(seconds: 5),
-        ),
+      SnackBarHelper.showError(
+        context,
+        '로그인에 실패했습니다: $e',
+        duration: const Duration(seconds: 5),
       );
     }
   }
@@ -107,11 +104,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                     debugPrint('로그아웃 실패: $e');
                     debugPrint('스택 트레이스: $stackTrace');
                     if (!mounted || !context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('로그아웃 중 오류가 발생했습니다: $e'),
-                        duration: const Duration(seconds: 3),
-                      ),
+                    SnackBarHelper.showError(
+                      context,
+                      '로그아웃 중 오류가 발생했습니다: $e',
                     );
                   }
                 },
