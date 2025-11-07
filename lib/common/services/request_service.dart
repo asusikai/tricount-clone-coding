@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/payment_request.dart';
+import '../../core/errors/errors.dart';
 
 class RequestService {
   RequestService(this._client);
@@ -29,8 +30,11 @@ class RequestService {
 
       return _attachLookupData(rows);
     } catch (error, stackTrace) {
-      debugPrint('요청 목록 조회 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '요청 목록 조회 실패',
+      );
     }
   }
 
@@ -51,8 +55,11 @@ class RequestService {
       ]);
       return requests.isNotEmpty ? requests.first : null;
     } catch (error, stackTrace) {
-      debugPrint('요청 상세 조회 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '요청 상세 조회 실패',
+      );
     }
   }
 
@@ -86,8 +93,11 @@ class RequestService {
       ]))
           .first;
     } catch (error, stackTrace) {
-      debugPrint('요청 생성 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '요청 생성 실패',
+      );
     }
   }
 
@@ -101,8 +111,11 @@ class RequestService {
           .update({'status': status.dbValue})
           .eq('id', requestId);
     } catch (error, stackTrace) {
-      debugPrint('요청 상태 업데이트 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '요청 상태 업데이트 실패',
+      );
     }
   }
 

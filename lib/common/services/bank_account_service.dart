@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/errors.dart';
+
 class BankAccountService {
   const BankAccountService(this._client);
 
@@ -15,8 +17,11 @@ class BankAccountService {
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (error, stackTrace) {
-      debugPrint('계좌 조회 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '계좌 조회 실패',
+      );
     }
   }
 
@@ -46,8 +51,11 @@ class BankAccountService {
           .single();
       return Map<String, dynamic>.from(response);
     } catch (error, stackTrace) {
-      debugPrint('계좌 추가 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '계좌 추가 실패',
+      );
     }
   }
 
@@ -58,8 +66,11 @@ class BankAccountService {
           .delete()
           .eq('id', accountId);
     } catch (error, stackTrace) {
-      debugPrint('계좌 삭제 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '계좌 삭제 실패',
+      );
     }
   }
 }

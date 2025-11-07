@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 import 'package:uuid/uuid.dart';
+
+import '../../core/errors/errors.dart'
+    show AuthException, ErrorHandler, NotFoundException, ValidationException;
 
 class GroupService {
   GroupService(this._client);
@@ -9,10 +12,10 @@ class GroupService {
   final _uuid = const Uuid();
 
   /// 그룹 생성
-  /// 
+  ///
   /// [name] 그룹 이름
   /// [baseCurrency] 기본 통화 (예: 'KRW', 'USD')
-  /// 
+  ///
   /// 반환: 생성된 그룹 ID
   Future<String> createGroup({
     required String name,
@@ -21,7 +24,7 @@ class GroupService {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw Exception('로그인이 필요합니다.');
+        throw const AuthException('로그인이 필요합니다.');
       }
 
       // 초대 코드 생성 (UUID)
@@ -52,22 +55,24 @@ class GroupService {
       debugPrint('그룹 생성 성공: $groupId (초대 코드: $inviteCode)');
       return groupId;
     } catch (error, stackTrace) {
-      debugPrint('그룹 생성 실패: $error');
-      debugPrint('스택 트레이스: $stackTrace');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '그룹 생성 실패',
+      );
     }
   }
 
   /// 초대 코드로 그룹 가입
-  /// 
+  ///
   /// [inviteCode] 초대 코드 (UUID)
-  /// 
+  ///
   /// 반환: 가입한 그룹 ID
   Future<String> joinGroupByInviteCode(String inviteCode) async {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw Exception('로그인이 필요합니다.');
+        throw const AuthException('로그인이 필요합니다.');
       }
 
       // 우선 RPC(rpc_create_invite)를 시도해 자동 가입 처리
@@ -85,7 +90,7 @@ class GroupService {
           .maybeSingle();
 
       if (groupResponse == null) {
-        throw Exception('유효하지 않은 초대 코드입니다.');
+        throw const ValidationException('유효하지 않은 초대 코드입니다.');
       }
 
       final groupId = groupResponse['id'] as String;
@@ -113,9 +118,11 @@ class GroupService {
       debugPrint('그룹 가입 성공: $groupId');
       return groupId;
     } catch (error, stackTrace) {
-      debugPrint('그룹 가입 실패: $error');
-      debugPrint('스택 트레이스: $stackTrace');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '그룹 가입 실패',
+      );
     }
   }
 
@@ -186,8 +193,11 @@ class GroupService {
           })
           .toList(growable: false);
     } catch (error, stackTrace) {
-      debugPrint('그룹 멤버 조회 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '그룹 멤버 조회 실패',
+      );
     }
   }
 
@@ -196,7 +206,7 @@ class GroupService {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw Exception('로그인이 필요합니다.');
+        throw const AuthException('로그인이 필요합니다.');
       }
 
       final response = await _client
@@ -206,14 +216,16 @@ class GroupService {
           .maybeSingle();
 
       if (response == null) {
-        throw StateError('그룹을 찾을 수 없습니다.');
+        throw const NotFoundException('그룹을 찾을 수 없습니다.');
       }
 
       return response;
     } catch (error, stackTrace) {
-      debugPrint('그룹 상세 조회 실패: $error');
-      debugPrint('스택 트레이스: $stackTrace');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '그룹 상세 조회 실패',
+      );
     }
   }
 
@@ -222,7 +234,7 @@ class GroupService {
     try {
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw Exception('로그인이 필요합니다.');
+        throw const AuthException('로그인이 필요합니다.');
       }
 
       // 그룹 소유자 확인 (첫 번째 멤버가 소유자로 간주)
@@ -233,7 +245,7 @@ class GroupService {
           .maybeSingle();
 
       if (groupResponse == null) {
-        throw Exception('그룹을 찾을 수 없습니다.');
+        throw const NotFoundException('그룹을 찾을 수 없습니다.');
       }
 
       // 멤버십 삭제
@@ -244,16 +256,18 @@ class GroupService {
 
       debugPrint('그룹 삭제 성공: $groupId');
     } catch (error, stackTrace) {
-      debugPrint('그룹 삭제 실패: $error');
-      debugPrint('스택 트레이스: $stackTrace');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '그룹 삭제 실패',
+      );
     }
   }
 
   /// 그룹 초대 링크 생성
-  /// 
+  ///
   /// [groupId] 그룹 ID
-  /// 
+  ///
   /// 반환: 딥링크 URL
   Future<String> getInviteLink(String groupId) async {
     try {
@@ -264,15 +278,17 @@ class GroupService {
           .maybeSingle();
 
       if (groupResponse == null) {
-        throw Exception('그룹을 찾을 수 없습니다.');
+        throw const NotFoundException('그룹을 찾을 수 없습니다.');
       }
 
       final inviteCode = groupResponse['invite_code'] as String;
       return 'splitbills://invite?code=$inviteCode';
     } catch (error, stackTrace) {
-      debugPrint('초대 링크 생성 실패: $error');
-      debugPrint('스택 트레이스: $stackTrace');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '초대 링크 생성 실패',
+      );
     }
   }
 
@@ -312,4 +328,3 @@ class GroupService {
     return null;
   }
 }
-

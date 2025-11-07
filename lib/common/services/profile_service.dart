@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/errors.dart';
+
 class ProfileService {
   const ProfileService(this._client);
 
@@ -15,8 +17,11 @@ class ProfileService {
           .maybeSingle();
       return response != null ? Map<String, dynamic>.from(response) : null;
     } catch (error, stackTrace) {
-      debugPrint('프로필 조회 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '프로필 조회 실패',
+      );
     }
   }
 
@@ -27,8 +32,11 @@ class ProfileService {
           .update({'name': name.trim()})
           .eq('id', userId);
     } catch (error, stackTrace) {
-      debugPrint('프로필 이름 업데이트 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '프로필 이름 업데이트 실패',
+      );
     }
   }
 
@@ -39,8 +47,11 @@ class ProfileService {
           .update({'nickname': nickname.trim()})
           .eq('id', userId);
     } catch (error, stackTrace) {
-      debugPrint('닉네임 업데이트 실패: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '닉네임 업데이트 실패',
+      );
     }
   }
 }

@@ -287,8 +287,8 @@
             "id": 5,
             "title": "에러 처리 통일",
             "description": "커스텀 Exception 클래스 및 error_handler 생성, 서비스 레이어에 적용",
-            "details": "- lib/core/errors/app_exception.dart: AppException, NetworkException, AuthException 등 커스텀 Exception 클래스 정의\n- lib/core/errors/error_handler.dart: 통일된 에러 처리 로직\n- 서비스에서 Error.throwWithStackTrace 대신 커스텀 Exception 사용\n- 에러 메시지를 사용자 친화적인 메시지로 변환하는 로직 포함",
-            "status": "pending",
+            "details": "- lib/core/errors/app_exception.dart: AppException, NetworkException, AuthException 등 커스텀 Exception 클래스 정의\n- lib/core/errors/error_handler.dart: 통일된 에러 처리 로직\n- 서비스에서 Error.throwWithStackTrace 대신 커스텀 Exception 사용\n- 에러 메시지를 사용자 친화적인 메시지로 변환하는 로직 포함\n<info added on 2025-11-07T16:29:29.108Z>\n에러 처리 통일 완료 사항 반영\n\n생성 파일\n- lib/core/errors/app_exception.dart: AppException, NetworkException, AuthException, PermissionException, NotFoundException, ValidationException, ConflictException, UnknownException 정의\n- lib/core/errors/error_handler.dart: ErrorHandler(toAppException, toUserFriendlyMessage, handleAndLog) 구현. gotrue.AuthException 자동 변환, PostgrestException 코드 분기(PGRST116=NotFound, 23505=Conflict, 23503=Validation, 42501=Permission), StorageException→NetworkException 처리, 네트워크 키워드 기반 휴리스틱, kDebugMode 상세 로깅\n- lib/core/errors/errors.dart: 에러 관련 배럴 파일(export)\n\n서비스 적용(모두 errors.dart 배럴 import)\n- lib/common/services/auth_service.dart: 모든 catch에서 ErrorHandler.handleAndLog 사용, UnknownException 사용, 컨텍스트 메시지 추가(OAuth 로그인 실패(provider), 로그아웃 실패, 사용자 프로필 동기화 실패)\n- lib/common/services/group_service.dart: Error.throwWithStackTrace 제거, handleAndLog로 통일, 명시적 AppException 사용(AuthException ‘로그인이 필요합니다’, ValidationException ‘유효하지 않은 초대 코드입니다’, NotFoundException ‘그룹을 찾을 수 없습니다’), 컨텍스트 메시지 추가(그룹 생성/가입/멤버 조회/상세 조회/삭제/초대 링크 생성 실패)\n- lib/common/services/request_service.dart: 요청 목록/상세/생성/상태 변경 전체에 handleAndLog 적용, 컨텍스트 메시지 추가\n- lib/common/services/bank_account_service.dart: 조회/추가/삭제 전체에 handleAndLog 적용, 컨텍스트 메시지 추가\n- lib/common/services/profile_service.dart: 프로필 조회/이름·닉네임 업데이트에 handleAndLog 적용, 컨텍스트 메시지 추가\n\n에러 처리 기능 요약\n- Supabase 예외 자동 변환: gotrue.AuthException, PostgrestException, StorageException\n- HTTP/DB 에러코드 및 메시지 기반 분류: 인증/권한/유효성/중복/미발견/네트워크/알 수 없음\n- 사용자 친화적 메시지 변환 메서드 제공(ErrorHandler.toUserFriendlyMessage)\n- 디버그 모드 상세 로깅(kDebugMode, context/cause/stackTrace 포함)\n\n정리\n- Error.throwWithStackTrace 전면 제거, ErrorHandler.handleAndLog로 대체\n- ‘로그인이 필요합니다’→AuthException, ‘그룹을 찾을 수 없습니다’→NotFoundException, ‘유효하지 않은 초대 코드입니다’→ValidationException로 표준화\n- flutter analyze 기준 린트 경고/오류 모두 해소\n</info added on 2025-11-07T16:29:29.108Z>",
+            "status": "done",
             "dependencies": [],
             "parentTaskId": 11,
             "parentId": "undefined"
@@ -347,7 +347,7 @@
       ],
       "created": "2025-11-07T16:15:16.946Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-07T16:23:40.753Z"
+      "updated": "2025-11-07T16:29:29.782Z"
     }
   }
 }

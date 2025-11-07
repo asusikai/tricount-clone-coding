@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/environment.dart';
+import '../../core/errors/errors.dart';
 
 class AuthService {
   AuthService(this._client);
@@ -106,17 +107,19 @@ class AuthService {
       );
 
       if (!success) {
-        throw Exception('OAuth 로그인 시작에 실패했습니다.');
+        throw const UnknownException('OAuth 로그인 시작에 실패했습니다.');
       }
 
       debugPrint('OAuth 로그인 시작 성공 (${provider.name})');
     } catch (error, stackTrace) {
-      debugPrint('OAuth sign-in failed for ${provider.name}: $error');
-      debugPrint('스택 트레이스: $stackTrace');
       // 로그인 실패 시 시간 초기화 및 상태 제거
       _lastSignInAttemptTime = null;
       clearFlowState(provider.name);
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: 'OAuth 로그인 실패 (${provider.name})',
+      );
     }
   }
 
@@ -135,11 +138,13 @@ class AuthService {
 
       debugPrint('로그아웃 완료 및 PKCE 상태 정리됨');
     } catch (error, stackTrace) {
-      debugPrint('Sign-out failed: $error');
-      debugPrint('스택 트레이스: $stackTrace');
       // 에러가 발생해도 플로우 상태는 초기화
       _lastFlowParams.clear();
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '로그아웃 실패',
+      );
     }
   }
 
@@ -166,8 +171,11 @@ class AuthService {
     try {
       await _client.from('users').upsert(payload, onConflict: 'id');
     } catch (error, stackTrace) {
-      debugPrint('Failed to sync user profile: $error');
-      Error.throwWithStackTrace(error, stackTrace);
+      throw ErrorHandler.handleAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: '사용자 프로필 동기화 실패',
+      );
     }
   }
 
