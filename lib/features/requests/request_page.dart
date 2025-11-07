@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/models/payment_request.dart';
 import '../../common/services/request_service.dart';
+import '../../core/utils/utils.dart';
 
 class RequestPage extends ConsumerStatefulWidget {
   const RequestPage({super.key, required this.requestId});
@@ -33,8 +34,9 @@ class _RequestPageState extends ConsumerState<RequestPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('요청 상태가 ${status.label}으로 변경되었습니다.')),
+      SnackBarHelper.showSuccess(
+        context,
+        '요청 상태가 ${status.label}으로 변경되었습니다.',
       );
       Navigator.of(context).pop(true);
     } catch (error) {
@@ -42,8 +44,9 @@ class _RequestPageState extends ConsumerState<RequestPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상태 변경 실패: $error')),
+      SnackBarHelper.showError(
+        context,
+        '상태 변경 실패: $error',
       );
     } finally {
       if (mounted) {
@@ -76,8 +79,7 @@ class _RequestPageState extends ConsumerState<RequestPage> {
               (otherUser?['email'] as String?) ??
               '알 수 없음';
           final createdAt = request.createdAt;
-          final formattedDate =
-              '${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+          final formattedDate = DateFormatter.formatDateTime(createdAt);
 
           final actionButtons = <Widget>[];
 

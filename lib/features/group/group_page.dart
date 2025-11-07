@@ -7,12 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../common/services/group_service.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupPage extends ConsumerWidget {
-  const GroupPage({
-    super.key,
-    required this.groupId,
-  });
+  const GroupPage({super.key, required this.groupId});
 
   final String groupId;
 
@@ -71,9 +69,10 @@ class GroupPage extends ConsumerWidget {
             ],
           ),
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _GroupErrorView(
+        loading: () => const LoadingView(),
+        error: (error, stackTrace) => ErrorView(
           error: error,
+          title: '그룹 정보를 불러오지 못했습니다.',
           onRetry: () => unawaited(_refresh(ref)),
         ),
       ),
@@ -107,9 +106,7 @@ class GroupPage extends ConsumerWidget {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('초대 링크를 공유할 수 없습니다. 다시 시도해주세요. ($error)'),
-        ),
+        SnackBar(content: Text('초대 링크를 공유할 수 없습니다. 다시 시도해주세요. ($error)')),
       );
     }
   }
@@ -119,9 +116,9 @@ class GroupPage extends ConsumerWidget {
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('초대 코드가 복사되었습니다.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('초대 코드가 복사되었습니다.')));
   }
 }
 
@@ -139,9 +136,12 @@ class _GroupSummaryCard extends StatelessWidget {
     final baseCurrency = detail['base_currency'] as String? ?? 'KRW';
     final inviteCode = (detail['invite_code'] as String?) ?? '';
     final createdAtRaw = detail['created_at'] as String?;
-    final createdAt = createdAtRaw == null ? null : DateTime.tryParse(createdAtRaw);
-    final createdText =
-        createdAt == null ? null : DateFormat('yyyy.MM.dd HH:mm').format(createdAt.toLocal());
+    final createdAt = createdAtRaw == null
+        ? null
+        : DateTime.tryParse(createdAtRaw);
+    final createdText = createdAt == null
+        ? null
+        : DateFormat('yyyy.MM.dd HH:mm').format(createdAt.toLocal());
 
     return Card(
       child: Padding(
@@ -149,19 +149,16 @@ class _GroupSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '그룹 정보',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('그룹 정보', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
-            _InfoRow(
+            InfoRow(
               icon: Icons.payments_outlined,
               label: '기본 통화',
               value: baseCurrency,
             ),
             if (createdText != null) ...[
               const SizedBox(height: 12),
-              _InfoRow(
+              InfoRow(
                 icon: Icons.calendar_month_outlined,
                 label: '생성일',
                 value: createdText,
@@ -172,7 +169,7 @@ class _GroupSummaryCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: _InfoRow(
+                    child: InfoRow(
                       icon: Icons.qr_code_2_outlined,
                       label: '초대 코드',
                       value: inviteCode,
@@ -213,10 +210,7 @@ class _GroupMembersSection extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '그룹 멤버',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
+                Text('그룹 멤버', style: Theme.of(context).textTheme.titleMedium),
                 IconButton(
                   tooltip: '새로고침',
                   onPressed: () {
@@ -239,7 +233,9 @@ class _GroupMembersSection extends StatelessWidget {
                   children: members
                       .map(
                         (member) => ListTile(
-                          leading: const CircleAvatar(child: Icon(Icons.person)),
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
                           title: Text(_resolveMemberName(member)),
                           subtitle: _buildMemberSubtitle(member),
                         ),
@@ -247,25 +243,13 @@ class _GroupMembersSection extends StatelessWidget {
                       .toList(growable: false),
                 );
               },
-              loading: () => const Padding(
+              loading: () => const LoadingView(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: CircularProgressIndicator()),
               ),
-              error: (error, stackTrace) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '멤버 정보를 불러오지 못했습니다.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    error.toString(),
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
+              error: (error, stackTrace) => ErrorView(
+                error: error,
+                title: '멤버 정보를 불러오지 못했습니다.',
+                onRetry: null,
               ),
             ),
           ],
@@ -296,85 +280,9 @@ class _GroupMembersSection extends StatelessWidget {
     if (joinedAt == null) {
       return null;
     }
-    final joinedText = DateFormat('yyyy.MM.dd HH:mm').format(joinedAt.toLocal());
+    final joinedText = DateFormat(
+      'yyyy.MM.dd HH:mm',
+    ).format(joinedAt.toLocal());
     return Text('참여일: $joinedText');
-  }
-}
-
-class _GroupErrorView extends StatelessWidget {
-  const _GroupErrorView({
-    required this.error,
-    required this.onRetry,
-  });
-
-  final Object error;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: Colors.redAccent,
-              size: 48,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '그룹 정보를 불러오지 못했습니다.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('다시 시도'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
-    );
   }
 }

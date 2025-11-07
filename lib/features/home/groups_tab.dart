@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/group_service.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class GroupsTab extends ConsumerStatefulWidget {
   const GroupsTab({super.key});
@@ -45,27 +46,31 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     return asyncGroups.when(
       data: (groups) => RefreshIndicator(
         onRefresh: _refreshGroups,
-        child: groups.isEmpty ? _buildEmptyList() : _buildGroupList(groups),
+        child: groups.isEmpty
+            ? ListView(
+                key: _emptyListKey,
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  const EmptyStateView(
+                    icon: Icons.group_outlined,
+                    title: '그룹이 없습니다',
+                    message: '새 그룹을 만들어보세요',
+                  ),
+                ],
+              )
+            : _buildGroupList(groups),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         debugPrint('그룹 목록 로드 실패: $error\n$stackTrace');
         return ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(height: 120),
-            Icon(
-              Icons.warning_amber_rounded,
-              size: 48,
-              color: Colors.redAccent,
-            ),
-            SizedBox(height: 8),
-            Center(
-              child: Text(
-                '그룹 목록을 불러오지 못했습니다.\n다시 시도해주세요.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.redAccent),
-              ),
+          children: [
+            ErrorView(
+              error: error,
+              title: '그룹 목록을 불러오지 못했습니다.',
+              message: '다시 시도해주세요.',
+              onRetry: () => unawaited(_refreshGroups()),
             ),
           ],
         );
@@ -124,32 +129,6 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     );
   }
 
-  Widget _buildEmptyList() {
-    return ListView(
-      key: _emptyListKey,
-      physics: const AlwaysScrollableScrollPhysics(),
-      children: [
-        const SizedBox(height: 120),
-        const Icon(Icons.group_outlined, size: 64, color: Colors.grey),
-        const SizedBox(height: 16),
-        const Center(
-          child: Text(
-            '그룹이 없습니다',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            '새 그룹을 만들어보세요',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _shareGroupInvite(String groupId, String groupName) async {
     setState(() {
       _sharingGroupId = groupId;
     });
