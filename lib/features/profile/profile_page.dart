@@ -9,6 +9,7 @@ import '../../common/services/auth_service.dart';
 import '../../common/services/bank_account_service.dart';
 import '../../core/utils/utils.dart';
 import '../../common/services/profile_service.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -418,11 +419,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final user = Supabase.instance.client.auth.currentUser;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingView(
+        message: '프로필 정보를 불러오는 중입니다...',
+      );
     }
 
     if (user == null) {
-      return const Center(child: Text('로그인이 필요합니다.'));
+      return const EmptyStateView(
+        icon: Icons.lock_outline,
+        title: '로그인이 필요합니다',
+        message: '프로필을 확인하려면 로그인해주세요.',
+      );
     }
 
     final email = _profile?['email'] as String? ?? user.email ?? '';
@@ -497,19 +504,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     ),
                   ),
                   if (_isAccountLoading)
-                    const Padding(
+                    const LoadingView(
                       padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator()),
                     )
                   else if (_accounts.isEmpty)
-                    const Padding(
+                    const EmptyStateView(
+                      icon: Icons.account_balance_outlined,
+                      title: '등록된 계좌가 없습니다.',
+                      message: '송금 요청을 빠르게 처리하려면 계좌를 추가하세요.',
                       padding: EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 24,
-                      ),
-                      child: Text(
-                        '등록된 계좌가 없습니다.',
-                        style: TextStyle(color: Colors.grey),
                       ),
                     )
                   else
