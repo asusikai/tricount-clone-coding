@@ -19,7 +19,6 @@ class ProfileService {
       debugPrint('프로필 조회 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return null;
   }
 
   Future<void> updateName(String userId, String name) async {

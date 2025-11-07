@@ -33,7 +33,6 @@ class RequestService {
       debugPrint('요청 목록 조회 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return <PaymentRequest>[];
   }
 
   Future<PaymentRequest?> fetchRequest(String requestId) async {
@@ -56,7 +55,6 @@ class RequestService {
       debugPrint('요청 상세 조회 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return null;
   }
 
   Future<PaymentRequest> createRequest({
@@ -92,7 +90,6 @@ class RequestService {
       debugPrint('요청 생성 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return throw Exception('요청 생성에 실패했습니다.');
   }
 
   Future<void> updateStatus({

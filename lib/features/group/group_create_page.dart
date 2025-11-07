@@ -31,7 +31,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
     }
 
     try {
-      final groupId = await ref
+      await ref
           .read(groupServiceProvider)
           .createGroup(
             name: _nameController.text.trim(),

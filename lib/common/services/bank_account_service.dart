@@ -19,7 +19,6 @@ class BankAccountService {
       debugPrint('계좌 조회 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return [];
   }
 
   Future<Map<String, dynamic>> addAccount({

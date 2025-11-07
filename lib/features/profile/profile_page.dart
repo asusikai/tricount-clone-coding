@@ -135,6 +135,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
+  // TODO: 사용되지 않는 메서드 - 필요시 활성화
+  // ignore: unused_element
   Future<void> _editName() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {

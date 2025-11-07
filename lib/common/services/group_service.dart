@@ -190,7 +190,6 @@ class GroupService {
       debugPrint('그룹 멤버 조회 실패: $error');
       Error.throwWithStackTrace(error, stackTrace);
     }
-    return [];
   }
 
   /// 그룹 상세 정보 조회

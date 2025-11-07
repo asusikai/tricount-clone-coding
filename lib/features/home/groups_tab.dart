@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +27,8 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
 
   Future<void> _refreshGroups() async {
     try {
-      await ref.refresh(userGroupsProvider.future);
+      ref.invalidate(userGroupsProvider);
+      await ref.read(userGroupsProvider.future);
     } catch (error, stackTrace) {
       debugPrint('그룹 새로고침 실패: $error\n$stackTrace');
       rethrow;
@@ -74,7 +77,9 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
               error: error,
               title: '그룹 목록을 불러오지 못했습니다.',
               message: '다시 시도해주세요.',
-              onRetry: () => unawaited(_refreshGroups()),
+              onRetry: () {
+                unawaited(_refreshGroups());
+              },
             ),
           ],
         );
@@ -133,6 +138,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     );
   }
 
+  Future<void> _shareGroupInvite(String groupId, String groupName) async {
     setState(() {
       _sharingGroupId = groupId;
     });
