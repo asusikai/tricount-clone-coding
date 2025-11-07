@@ -42,7 +42,8 @@ class AuthService {
       return uri;
     }
 
-    final hasState = uri.queryParameters.containsKey('state') ||
+    final hasState =
+        uri.queryParameters.containsKey('state') ||
         uri.queryParameters.containsKey('flow_state');
 
     if (hasState) {
@@ -60,7 +61,7 @@ class AuthService {
       return uri;
     }
 
-    debugPrint('누락된 flow state 보강 (${providerKey}): ${savedParams.toString()}');
+    debugPrint('누락된 flow state 보강 ($providerKey): ${savedParams.toString()}');
     return uri.replace(queryParameters: newQuery);
   }
 
@@ -90,10 +91,9 @@ class AuthService {
         debugPrint('로그인 시작 시간 없음 - PKCE 상태 정리 대기 중...');
         await Future.delayed(const Duration(milliseconds: 1000));
       }
-      
+
       // 로그인 시작 시간 기록
       _lastSignInAttemptTime = DateTime.now();
-      final providerKey = provider.name.toLowerCase();
       debugPrint('로그인 시작: ${provider.name} at $_lastSignInAttemptTime');
 
       // 이전 플로우 상태 정리 (새로운 로그인 시도 전)
@@ -126,14 +126,14 @@ class AuthService {
       // 로그아웃 수행 전에 현재 시간 기록 (다음 로그인 시 대기 시간 계산용)
       // _lastSignInAttemptTime을 null로 설정하지 않음 - 로그인 시 대기 시간 계산에 사용
       _lastFlowParams.clear();
-      
+
       // 로그아웃 수행
       await _client.auth.signOut();
-      
+
       // PKCE 플로우 상태가 완전히 정리되도록 충분한 지연
       // Supabase SDK가 secure storage의 PKCE code verifier를 정리하는데 시간이 필요함
       await Future.delayed(const Duration(milliseconds: 1000));
-      
+
       debugPrint('로그아웃 완료 및 PKCE 상태 정리됨');
     } catch (error, stackTrace) {
       debugPrint('Sign-out failed: $error');
@@ -152,12 +152,15 @@ class AuthService {
     final name = _extractName(user.userMetadata);
     final provider = _extractProvider(session);
 
-    final payload = <String, dynamic>{
-      'id': user.id,
-      'email': user.email,
-      'name': name,
-      'provider': provider,
-    }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
+    final payload =
+        <String, dynamic>{
+          'id': user.id,
+          'email': user.email,
+          'name': name,
+          'provider': provider,
+        }..removeWhere(
+          (key, value) => value == null || (value is String && value.isEmpty),
+        );
 
     if (payload.isEmpty) return;
 
@@ -183,7 +186,7 @@ class AuthService {
     final identities = session.user.identities;
     if (identities != null && identities.isNotEmpty) {
       final identity = identities.first;
-      if (identity.provider?.isNotEmpty ?? false) {
+      if (identity.provider.isNotEmpty == true) {
         return identity.provider;
       }
     }
@@ -216,4 +219,3 @@ class AuthService {
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(Supabase.instance.client);
 });
-

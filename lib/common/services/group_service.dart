@@ -71,6 +71,13 @@ class GroupService {
         throw Exception('로그인이 필요합니다.');
       }
 
+      // 우선 RPC(rpc_create_invite)를 시도해 자동 가입 처리
+      final rpcGroupId = await _tryJoinGroupViaRpc(inviteCode);
+      if (rpcGroupId != null && rpcGroupId.isNotEmpty) {
+        debugPrint('RPC 기반 그룹 가입 성공: $rpcGroupId');
+        return rpcGroupId;
+      }
+
       // 초대 코드로 그룹 찾기
       final groupResponse = await _client
           .from('groups')
@@ -243,6 +250,42 @@ class GroupService {
       debugPrint('스택 트레이스: $stackTrace');
       Error.throwWithStackTrace(error, stackTrace);
     }
+  }
+
+  Future<String?> _tryJoinGroupViaRpc(String inviteCode) async {
+    try {
+      final response = await _client.rpc(
+        'rpc_create_invite',
+        params: {'code': inviteCode},
+      );
+      return _extractGroupIdFromRpc(response);
+    } catch (error, stackTrace) {
+      debugPrint('rpc_create_invite 실패: $error');
+      debugPrint('스택 트레이스: $stackTrace');
+      return null;
+    }
+  }
+
+  String? _extractGroupIdFromRpc(dynamic response) {
+    if (response == null) {
+      return null;
+    }
+    if (response is String && response.isNotEmpty) {
+      return response;
+    }
+    if (response is Map<String, dynamic>) {
+      final groupId = response['group_id'] ?? response['id'];
+      if (groupId is String && groupId.isNotEmpty) {
+        return groupId;
+      }
+    }
+    if (response is List && response.isNotEmpty) {
+      return _extractGroupIdFromRpc(response.first);
+    }
+    if (response is num) {
+      return response.toString();
+    }
+    return null;
   }
 }
 

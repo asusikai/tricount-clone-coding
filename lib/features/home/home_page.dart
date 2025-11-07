@@ -7,60 +7,106 @@ import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';
 
-enum _HomeTab { groups, requests, profile }
+enum HomeTab { groups, requests, profile }
+
+extension HomeTabX on HomeTab {
+  static HomeTab? maybeFromName(String? value) {
+    if (value == null) {
+      return null;
+    }
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    for (final tab in HomeTab.values) {
+      if (tab.name == normalized) {
+        return tab;
+      }
+    }
+    return null;
+  }
+
+  static HomeTab fromName(String? value, {HomeTab fallback = HomeTab.groups}) {
+    return maybeFromName(value) ?? fallback;
+  }
+
+  String get routePath {
+    return this == HomeTab.groups ? '/home' : '/home?tab=$name';
+  }
+}
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key});
+  const HomePage({
+    super.key,
+    this.initialTab = HomeTab.groups,
+  });
+
+  final HomeTab initialTab;
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  _HomeTab _currentTab = _HomeTab.groups;
+  late HomeTab _currentTab;
 
-  static const Map<_HomeTab, String> _tabTitles = {
-    _HomeTab.groups: 'Groups',
-    _HomeTab.requests: 'Requests',
-    _HomeTab.profile: 'Profile',
+  static const Map<HomeTab, String> _tabTitles = {
+    HomeTab.groups: 'Groups',
+    HomeTab.requests: 'Requests',
+    HomeTab.profile: 'Profile',
   };
-  static const Map<_HomeTab, PageStorageKey<String>> _tabStorageKeys = {
-    _HomeTab.groups: PageStorageKey<String>('home_groups_tab'),
-    _HomeTab.requests: PageStorageKey<String>('home_requests_tab'),
-    _HomeTab.profile: PageStorageKey<String>('home_profile_tab'),
+  static const Map<HomeTab, PageStorageKey<String>> _tabStorageKeys = {
+    HomeTab.groups: PageStorageKey<String>('home_groups_tab'),
+    HomeTab.requests: PageStorageKey<String>('home_requests_tab'),
+    HomeTab.profile: PageStorageKey<String>('home_profile_tab'),
   };
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys =
-      List.generate(_HomeTab.values.length, (_) => GlobalKey<NavigatorState>());
+      List.generate(HomeTab.values.length, (_) => GlobalKey<NavigatorState>());
 
   @override
   void initState() {
     super.initState();
+    _currentTab = widget.initialTab;
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab != widget.initialTab) {
+      _switchToTab(widget.initialTab, resetStack: true);
+    }
   }
 
   void _onTabSelected(int index) {
-    final targetTab = _HomeTab.values[index];
-    if (_currentTab == targetTab) {
-      final navigator = _navigatorKeys[index].currentState;
+    final targetTab = HomeTab.values[index];
+    final isReselect = _currentTab == targetTab;
+    _switchToTab(targetTab, resetStack: isReselect);
+  }
+
+  void _switchToTab(HomeTab tab, {bool resetStack = false}) {
+    if (resetStack) {
+      final navigator = _navigatorKeys[tab.index].currentState;
       navigator?.popUntil((route) => route.isFirst);
+    }
+    if (_currentTab == tab) {
       return;
     }
-
     setState(() {
-      _currentTab = targetTab;
+      _currentTab = tab;
     });
   }
 
   FloatingActionButton? _buildFab(BuildContext context) {
     switch (_currentTab) {
-      case _HomeTab.groups:
+      case HomeTab.groups:
         return FloatingActionButton(
           onPressed: () {
             context.go('/group/create');
           },
           child: const Icon(Icons.add),
         );
-      case _HomeTab.requests:
+      case HomeTab.requests:
         return FloatingActionButton(
           onPressed: () async {
             final shouldRefresh = await context.push<bool>('/requests/register');
@@ -70,7 +116,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           },
           child: const Icon(Icons.note_add),
         );
-      case _HomeTab.profile:
+      case HomeTab.profile:
         return null;
     }
   }
@@ -82,20 +128,31 @@ class _HomePageState extends ConsumerState<HomePage> {
       return false;
     }
 
-    if (_currentTab != _HomeTab.groups) {
-      setState(() {
-        _currentTab = _HomeTab.groups;
-      });
+    if (_currentTab != HomeTab.groups) {
+      _switchToTab(HomeTab.groups);
       return false;
     }
 
     return true;
   }
 
-  Widget _buildTabNavigator(_HomeTab tab, Widget child) {
+  Widget _buildTabNavigator(HomeTab tab) {
     final key = _tabStorageKeys[tab];
-    return Offstage(
-      offstage: _currentTab != tab,
+    final Widget child;
+    switch (tab) {
+      case HomeTab.groups:
+        child = const GroupsTab();
+        break;
+      case HomeTab.requests:
+        child = const RequestsTab();
+        break;
+      case HomeTab.profile:
+        child = const ProfilePage();
+        break;
+    }
+
+    return TickerMode(
+      enabled: _currentTab == tab,
       child: Navigator(
         key: _navigatorKeys[tab.index],
         onGenerateRoute: (settings) {
@@ -119,12 +176,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         appBar: AppBar(
           title: Text(_tabTitles[_currentTab]!),
         ),
-        body: Stack(
-          children: [
-            _buildTabNavigator(_HomeTab.groups, const GroupsTab()),
-            _buildTabNavigator(_HomeTab.requests, const RequestsTab()),
-            _buildTabNavigator(_HomeTab.profile, const ProfilePage()),
-          ],
+        body: IndexedStack(
+          index: _currentTab.index,
+          children: HomeTab.values.map(_buildTabNavigator).toList(),
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _currentTab.index,

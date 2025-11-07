@@ -32,10 +32,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _refreshAll() async {
-    await Future.wait<void>(<Future<void>>[
-      _loadProfile(),
-      _loadAccounts(),
-    ]);
+    await Future.wait<void>(<Future<void>>[_loadProfile(), _loadAccounts()]);
   }
 
   Future<void> _loadProfile() async {
@@ -58,26 +55,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     try {
-      final profile =
-          await ref.read(profileServiceProvider).fetchProfile(user.id);
+      final profile = await ref
+          .read(profileServiceProvider)
+          .fetchProfile(user.id);
       if (!mounted) {
         return;
       }
 
-      final fallback = <String, dynamic>{
-        'email': user.email,
-        'name': user.userMetadata?['full_name'],
-        'nickname': user.userMetadata?['nickname'],
-        'provider': user.appMetadata['provider'],
-      }..removeWhere(
-          (key, value) => value == null || (value is String && value.isEmpty),
-        );
+      final fallback =
+          <String, dynamic>{
+            'email': user.email,
+            'name': user.userMetadata?['full_name'],
+            'nickname': user.userMetadata?['nickname'],
+            'provider': user.appMetadata['provider'],
+          }..removeWhere(
+            (key, value) => value == null || (value is String && value.isEmpty),
+          );
 
       setState(() {
-        _profile = {
-          ...fallback,
-          if (profile != null) ...profile,
-        };
+        _profile = {...fallback, if (profile != null) ...profile};
         _isProfileLoading = false;
       });
     } catch (error) {
@@ -85,9 +81,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('프로필을 불러오지 못했습니다: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('프로필을 불러오지 못했습니다: $error')));
       setState(() {
         _isProfileLoading = false;
       });
@@ -114,8 +110,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     try {
-      final accounts =
-          await ref.read(bankAccountServiceProvider).fetchAccounts(user.id);
+      final accounts = await ref
+          .read(bankAccountServiceProvider)
+          .fetchAccounts(user.id);
       if (!mounted) {
         return;
       }
@@ -128,9 +125,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('계좌 정보를 불러오지 못했습니다: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('계좌 정보를 불러오지 못했습니다: $error')));
       setState(() {
         _isAccountLoading = false;
       });
@@ -180,22 +177,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         return;
       }
       setState(() {
-        _profile = {
-          ...?_profile,
-          'name': result,
-        };
+        _profile = {...?_profile, 'name': result};
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이름이 업데이트되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('이름이 업데이트되었습니다.')));
     } catch (error) {
       debugPrint('이름 업데이트 실패: $error');
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이름 수정 실패: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('이름 수정 실패: $error')));
     }
   }
 
@@ -242,22 +236,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         return;
       }
       setState(() {
-        _profile = {
-          ...?_profile,
-          'nickname': result,
-        };
+        _profile = {...?_profile, 'nickname': result};
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('닉네임이 업데이트되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('닉네임이 업데이트되었습니다.')));
     } catch (error) {
       debugPrint('닉네임 업데이트 실패: $error');
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('닉네임 수정 실패: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('닉네임 수정 실패: $error')));
     }
   }
 
@@ -315,20 +306,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final bankName = bankController.text.trim();
     final accountNumber = numberController.text.trim();
     final alias = aliasController.text.trim();
-    
+
     // 프로필에서 사용자 이름 가져오기 (이미 로드된 데이터 사용)
     final userName = (_profile?['name'] as String?)?.trim();
     final accountHolder = userName?.isNotEmpty == true ? userName : null;
 
     if (bankName.isEmpty || accountNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('은행명과 계좌번호를 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('은행명과 계좌번호를 입력해주세요.')));
       return;
     }
 
     try {
-      final account = await ref.read(bankAccountServiceProvider).addAccount(
+      final account = await ref
+          .read(bankAccountServiceProvider)
+          .addAccount(
             userId: user.id,
             bankName: bankName,
             accountNumber: accountNumber,
@@ -341,17 +334,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       setState(() {
         _accounts = <Map<String, dynamic>>[account, ..._accounts];
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('계좌가 추가되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('계좌가 추가되었습니다.')));
     } catch (error) {
       debugPrint('계좌 추가 실패: $error');
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('계좌 추가 실패: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('계좌 추가 실패: $error')));
     }
   }
 
@@ -390,17 +383,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             .where((account) => account['id'] != accountId)
             .toList(growable: false);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('계좌가 삭제되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('계좌가 삭제되었습니다.')));
     } catch (error) {
       debugPrint('계좌 삭제 실패: $error');
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('계좌 삭제 실패: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('계좌 삭제 실패: $error')));
     }
   }
 
@@ -410,9 +403,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('계좌번호가 복사되었습니다.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('계좌번호가 복사되었습니다.')));
   }
 
   String _maskedAccountNumber(String value) {
@@ -438,13 +431,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final email = _profile?['email'] as String? ?? user.email ?? '';
     final name = (_profile?['name'] as String?)?.trim();
     final nickname = (_profile?['nickname'] as String?)?.trim();
-    final provider = _profile?['provider'] as String? ??
-        user.appMetadata['provider']?.toString() ??
-        'unknown';
 
     final displayName = (name?.isNotEmpty ?? false) ? name! : '이름 미설정';
-    final avatarLabel =
-        ((displayName.isNotEmpty ? displayName[0] : email[0])).toUpperCase();
+    final avatarLabel = ((displayName.isNotEmpty ? displayName[0] : email[0]))
+        .toUpperCase();
 
     return RefreshIndicator(
       onRefresh: _refreshAll,
@@ -455,10 +445,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             children: [
               CircleAvatar(
                 radius: 32,
-                child: Text(
-                  avatarLabel,
-                  style: const TextStyle(fontSize: 28),
-                ),
+                child: Text(avatarLabel, style: const TextStyle(fontSize: 28)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -470,10 +457,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      email,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text(email, style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 8),
                   ],
                 ),
@@ -488,9 +472,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ListTile(
                   leading: const Icon(Icons.tag_faces_outlined),
                   title: const Text('닉네임'),
-                  subtitle: Text(nickname?.isNotEmpty == true
-                      ? nickname!
-                      : '등록된 닉네임이 없습니다'),
+                  subtitle: Text(
+                    nickname?.isNotEmpty == true ? nickname! : '등록된 닉네임이 없습니다',
+                  ),
                   trailing: TextButton(
                     onPressed: _editNickname,
                     child: const Text('수정'),
@@ -522,8 +506,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     )
                   else if (_accounts.isEmpty)
                     const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 24,
+                      ),
                       child: Text(
                         '등록된 계좌가 없습니다.',
                         style: TextStyle(color: Colors.grey),
@@ -534,7 +520,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _accounts.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final account = _accounts[index];
                         final bankName =
@@ -544,10 +530,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         final alias = account['alias'] as String?;
                         return ListTile(
                           title: Text(bankName),
-                          subtitle: Text([
-                            _maskedAccountNumber(number),
-                            if (alias != null && alias.isNotEmpty) alias,
-                          ].join(' • ')),
+                          subtitle: Text(
+                            [
+                              _maskedAccountNumber(number),
+                              if (alias != null && alias.isNotEmpty) alias,
+                            ].join(' • '),
+                          ),
                           trailing: PopupMenuButton<String>(
                             onSelected: (value) {
                               switch (value) {

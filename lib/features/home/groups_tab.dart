@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/group_service.dart';
@@ -16,6 +16,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     with AutomaticKeepAliveClientMixin {
   static const _listKey = PageStorageKey<String>('home_groups_list');
   static const _emptyListKey = PageStorageKey<String>('home_groups_list_empty');
+  String? _sharingGroupId;
 
   @override
   bool get wantKeepAlive => true;
@@ -52,7 +53,11 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
           physics: const AlwaysScrollableScrollPhysics(),
           children: const [
             SizedBox(height: 120),
-            Icon(Icons.warning_amber_rounded, size: 48, color: Colors.redAccent),
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 48,
+              color: Colors.redAccent,
+            ),
             SizedBox(height: 8),
             Center(
               child: Text(
@@ -75,8 +80,12 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
       itemBuilder: (context, index) {
         final group = groups[index];
         final name = (group['name'] as String?)?.trim() ?? '';
-        final avatarText = name.isEmpty ? 'G' : name.substring(0, 1).toUpperCase();
+        final avatarText = name.isEmpty
+            ? 'G'
+            : name.substring(0, 1).toUpperCase();
         final baseCurrency = group['base_currency'] as String? ?? 'KRW';
+        final groupId = (group['id'] ?? '').toString();
+        final isSharing = _sharingGroupId == groupId;
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -84,10 +93,28 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
             leading: CircleAvatar(child: Text(avatarText)),
             title: Text(name.isEmpty ? '이름 없음' : name),
             subtitle: Text('기본 통화: $baseCurrency'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: '초대 링크 공유',
+                  icon: isSharing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.ios_share),
+                  onPressed: _sharingGroupId == null
+                      ? () => _shareGroupInvite(groupId, name)
+                      : null,
+                ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
             onTap: () {
               // TODO: GroupPage로 이동
-              debugPrint('그룹 선택: ${group['id']}');
+              debugPrint('그룹 선택: $groupId');
             },
           ),
         );
@@ -118,5 +145,34 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
         ),
       ],
     );
+  }
+
+  Future<void> _shareGroupInvite(String groupId, String groupName) async {
+    setState(() {
+      _sharingGroupId = groupId;
+    });
+    try {
+      final groupService = ref.read(groupServiceProvider);
+      final inviteLink = await groupService.getInviteLink(groupId);
+      final shareSubject = groupName.isEmpty
+          ? 'splitBills 그룹 초대'
+          : 'splitBills: $groupName 초대';
+      await Share.share(inviteLink, subject: shareSubject);
+    } catch (error, stackTrace) {
+      debugPrint('초대 링크 공유 실패: $error\n$stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('초대 링크 공유에 실패했습니다. 다시 시도해주세요. ($error)')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (_sharingGroupId == groupId) {
+            _sharingGroupId = null;
+          }
+        });
+      }
+    }
   }
 }
