@@ -224,9 +224,11 @@ class _GroupMembersSection extends StatelessWidget {
             membersAsync.when(
               data: (members) {
                 if (members.isEmpty) {
-                  return const Text(
-                    '멤버가 없습니다. 초대 링크를 공유해 멤버를 추가해보세요.',
-                    style: TextStyle(color: Colors.grey),
+                  return const EmptyStateView(
+                    icon: Icons.person_outline,
+                    title: '멤버가 없습니다',
+                    message: '초대 링크를 공유해 멤버를 추가해보세요.',
+                    padding: EdgeInsets.symmetric(vertical: 24),
                   );
                 }
                 return Column(
@@ -249,7 +251,7 @@ class _GroupMembersSection extends StatelessWidget {
               error: (error, stackTrace) => ErrorView(
                 error: error,
                 title: '멤버 정보를 불러오지 못했습니다.',
-                onRetry: null,
+                onRetry: () => unawaited(onRefresh()),
               ),
             ),
           ],

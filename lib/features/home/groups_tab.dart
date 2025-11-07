@@ -38,7 +38,11 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
-      return const Center(child: Text('로그인되지 않음'));
+      return const EmptyStateView(
+        icon: Icons.lock_outline,
+        title: '로그인이 필요합니다',
+        message: '그룹 목록을 확인하려면 먼저 로그인해주세요.',
+      );
     }
 
     final asyncGroups = ref.watch(userGroupsProvider);

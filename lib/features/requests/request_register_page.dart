@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/group_service.dart';
 import '../../common/services/request_service.dart';
+import '../../presentation/widgets/common/common_widgets.dart';
 
 class RequestRegisterPage extends ConsumerStatefulWidget {
   const RequestRegisterPage({super.key});
@@ -193,10 +194,16 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
         title: const Text('송금 요청 등록'),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingView(message: '그룹 정보를 불러오는 중입니다...')
           : _groups.isEmpty
-              ? const Center(
-                  child: Text('가입된 그룹이 없습니다. 먼저 그룹에 참여해주세요.'),
+              ? EmptyStateView(
+                  icon: Icons.group_add_outlined,
+                  title: '가입된 그룹이 없습니다.',
+                  message: '먼저 그룹에 참여하거나 새로운 그룹을 만들어주세요.',
+                  action: RetryButton(
+                    label: '그룹 목록 새로고침',
+                    onPressed: () => unawaited(_loadGroups()),
+                  ),
                 )
               : SafeArea(
                   child: Padding(
