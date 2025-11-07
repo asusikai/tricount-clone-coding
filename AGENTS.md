@@ -96,6 +96,7 @@ supabase.sql을 바탕으로 한다.
 - Codex는 `tasks` 내 정의된 우선순위를 기반으로 task를 실행.
 - 태스크 상태는 `pending → in-progress → done`만 사용.
 - 에이전트는 `AGENTS.md` 내 역할 정의에 따라 자동 선택.
+- 완료된 task/subtask는 즉시 `done`으로 바꾸고, 이어지는 항목을 `in-progress`로 전환해 순차 진행한다.
 
 ## 브랜치 및 PR
 
