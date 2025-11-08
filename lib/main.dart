@@ -10,6 +10,7 @@ import 'bootstrap/bootstrap_error_page.dart';
 import 'common/services/auth_service.dart';
 import 'config/environment.dart';
 import 'core/auth/auth_callback_handler.dart';
+import 'core/auth/auth_state_manager.dart';
 import 'core/config/env_validator.dart';
 import 'core/constants/constants.dart';
 import 'core/deep_link/deep_link_handler.dart';
@@ -401,6 +402,56 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  /// 로그아웃 처리
+  ///
+  /// 앱 상태를 초기화하고 인증 페이지로 이동합니다.
+  void _handleSignOut(String currentLocation) {
+    // 앱 상태 초기화 (Riverpod ref는 MyApp에서 직접 접근 불가하므로 null 전달)
+    // 실제 Provider 초기화는 각 페이지에서 처리됨
+    AuthStateManager.clearAppState(null);
+
+    // 세션 만료 알림 표시 (인증 페이지가 아닌 경우)
+    if (currentLocation != RouteConstants.splash &&
+        currentLocation != RouteConstants.auth) {
+      _showSessionExpiredMessage();
+    }
+
+    // 인증 페이지로 이동
+    if (currentLocation != RouteConstants.splash &&
+        currentLocation != RouteConstants.auth) {
+      _safeNavigate(RouteConstants.auth);
+    }
+  }
+
+  /// 사용자 삭제 처리
+  ///
+  /// 앱 상태를 초기화하고 인증 페이지로 이동합니다.
+  void _handleUserDeleted(String currentLocation) {
+    // 앱 상태 초기화
+    AuthStateManager.clearStateOnUserDeleted(null);
+
+    // 인증 페이지로 이동
+    if (currentLocation != RouteConstants.splash &&
+        currentLocation != RouteConstants.auth) {
+      _safeNavigate(RouteConstants.auth);
+    }
+  }
+
+  /// 세션 만료 메시지 표시
+  void _showSessionExpiredMessage() {
+    if (!mounted) return;
+    final messenger = _scaffoldMessengerKey.currentState;
+    if (messenger != null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('세션이 만료되었습니다. 다시 로그인해주세요.'),
+          duration: const Duration(seconds: 4),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
   /// 인증 상태 변화 구독
   ///
   /// 세션 생성/만료/갱신 시 자동으로 라우팅을 업데이트합니다.
@@ -425,15 +476,16 @@ class _MyAppState extends State<MyApp> {
             }
             break;
           case AuthChangeEvent.signedOut:
+            // 로그아웃 시 앱 상태 초기화 및 인증 페이지로 이동
+            _handleSignOut(currentLocation);
+            break;
           case AuthChangeEvent.userDeleted:
-            // 로그아웃 또는 사용자 삭제 시 인증 페이지로 이동
-            if (currentLocation != RouteConstants.splash &&
-                currentLocation != RouteConstants.auth) {
-              _safeNavigate(RouteConstants.auth);
-            }
+            // 사용자 삭제 시 앱 상태 초기화 및 인증 페이지로 이동
+            _handleUserDeleted(currentLocation);
             break;
           case AuthChangeEvent.tokenRefreshed:
             // 토큰 갱신 시 라우터만 리프레시 (현재 위치 유지)
+            debugPrint('토큰 갱신 완료');
             appRouter.refresh();
             break;
           case AuthChangeEvent.passwordRecovery:

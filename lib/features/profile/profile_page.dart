@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/auth/auth_state_manager.dart';
 import '../../core/utils/utils.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
@@ -575,11 +576,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               leading: const Icon(Icons.logout),
               title: const Text('로그아웃'),
               onTap: () async {
-                await ref.read(authServiceProvider).signOut();
-                if (!mounted) {
-                  return;
+                try {
+                  // 로그아웃 전 상태 초기화
+                  AuthStateManager.clearAppState(ref);
+                  
+                  await ref.read(authServiceProvider).signOut();
+                  if (!mounted) {
+                    return;
+                  }
+                  // 로그아웃 성공 시 SplashPage로 이동 (onAuthStateChange에서 자동으로 Auth로 리다이렉트됨)
+                  context.go('/splash');
+                } catch (e, stackTrace) {
+                  debugPrint('로그아웃 실패: $e');
+                  debugPrint('스택 트레이스: $stackTrace');
+                  if (!mounted) {
+                    return;
+                  }
+                  SnackBarHelper.showError(
+                    context,
+                    '로그아웃 중 오류가 발생했습니다: $e',
+                  );
                 }
-                context.go('/splash');
               },
             ),
           ),
