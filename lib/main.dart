@@ -10,6 +10,7 @@ import 'bootstrap/bootstrap_error_page.dart';
 import 'common/services/auth_service.dart';
 import 'config/environment.dart';
 import 'core/auth/auth_callback_handler.dart';
+import 'core/config/env_validator.dart';
 import 'core/constants/constants.dart';
 import 'core/deep_link/deep_link_handler.dart';
 import 'core/invite/invite_handler.dart';
@@ -70,6 +71,25 @@ class _BootstrapAppState extends State<_BootstrapApp> {
     try {
       await Environment.load();
       Environment.ensureSupabase();
+
+      // 환경 변수 및 URL 스킴 검증
+      final validationResult = EnvValidator.validateAll();
+      validationResult.logResults();
+
+      if (!validationResult.isValid) {
+        final issues = <String>[];
+        if (!validationResult.environment.isValid) {
+          issues.addAll(validationResult.environment.issues);
+        }
+        if (!validationResult.urlSchemes.isValid) {
+          issues.add(validationResult.urlSchemes.message);
+        }
+        throw StateError(
+          '환경 설정 검증 실패:\n${issues.join('\n')}\n\n'
+          'Android 가이드:\n${validationResult.urlSchemes.androidGuide}\n\n'
+          'iOS 가이드:\n${validationResult.urlSchemes.iosGuide}',
+        );
+      }
 
       await Supabase.initialize(
         url: Environment.supabaseUrl,

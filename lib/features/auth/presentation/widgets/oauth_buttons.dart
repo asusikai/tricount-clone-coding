@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../common/services/auth_service.dart';
-import '../../../../core/utils/utils.dart';
+import '../../../../core/ui/app_snackbar.dart';
 import '../../../../presentation/providers/providers.dart';
 
 /// OAuth 로그인 버튼 위젯
@@ -53,11 +53,23 @@ class OAuthButtons extends ConsumerWidget {
       // 로그인 실패 시 시간 초기화
       AuthService.clearSignInAttemptTime();
       if (!context.mounted) return;
-      SnackBarHelper.showError(
-        context,
-        '로그인에 실패했습니다: $e',
-        duration: const Duration(seconds: 5),
-      );
+
+      // 표준화된 오류 메시지 표시
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('cancelled') ||
+          errorString.contains('canceled') ||
+          errorString.contains('취소')) {
+        AppSnackbar.showCancelled(context);
+      } else if (errorString.contains('network') ||
+          errorString.contains('connection')) {
+        AppSnackbar.showNetworkError(context);
+      } else {
+        AppSnackbar.showOAuthErrorWithRetry(
+          context,
+          e,
+          () => _handleSignIn(context, ref, provider),
+        );
+      }
     }
   }
 }

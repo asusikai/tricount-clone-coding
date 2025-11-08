@@ -106,8 +106,8 @@
               1,
               2
             ],
-            "details": "`.env`에 `SUPABASE_URL/ANON_KEY/REDIRECT_URI` 존재 여부를 부팅 시 검증하는 유틸을 `lib/core/config/env_validator.dart`로 추가합니다. Android `AndroidManifest.xml` 인텐트 필터와 iOS URL Types가 `splitbills://auth-callback`(예) 등과 일치하는지 점검 가이드 반영. OAuth 오류/취소 시 공통 스낵바 헬퍼 `lib/core/ui/app_snackbar.dart`로 메시지를 일원화합니다(예: 네트워크 오류/취소/미지원 플랫폼).",
-            "status": "pending",
+            "details": "`.env`에 `SUPABASE_URL/ANON_KEY/REDIRECT_URI` 존재 여부를 부팅 시 검증하는 유틸을 `lib/core/config/env_validator.dart`로 추가합니다. Android `AndroidManifest.xml` 인텐트 필터와 iOS URL Types가 `splitbills://auth-callback`(예) 등과 일치하는지 점검 가이드 반영. OAuth 오류/취소 시 공통 스낵바 헬퍼 `lib/core/ui/app_snackbar.dart`로 메시지를 일원화합니다(예: 네트워크 오류/취소/미지원 플랫폼).\n<info added on 2025-11-08T04:29:34.579Z>\n구현 결과 반영:\n- 환경 변수/URL 스킴 검증 유틸 추가: lib/core/config/env_validator.dart\n  - validateEnvironment(), validateUrlSchemes(), validateAll() 및 ValidationResult/SchemeValidationResult/FullValidationResult 구현\n  - URL 스킴(scheme/host) 파싱, 예상 스킴 검증(tricount 또는 splitbills), Android/iOS 가이드 문자열 생성, logResults() 제공\n- 스낵바 표준화: lib/core/ui/app_snackbar.dart\n  - showNetworkError(), showCancelled(), showUnsupportedPlatform(), showOAuthError(), showOAuthErrorWithRetry(), showSessionExpired(), showConfigError(), _extractErrorMessage() 구현\n  - 공통 헬퍼 lib/core/utils/snackbar_helper.dart 사용\n- 부팅 시 통합 검증: lib/main.dart\n  - _bootstrap()에서 Environment.load() → Environment.ensureSupabase() → EnvValidator.validateAll() 호출 및 logResults()\n  - 실패 시 ValidationResult.issues와 SchemeValidationResult.androidGuide/iosGuide를 합쳐 StateError로 전달, lib/bootstrap/bootstrap_error_page.dart로 상세 가이드/재시도 버튼 노출\n  - Supabase.initialize 시 AuthFlowType.pkce 적용\n- OAuth 버튼 오류 처리: lib/features/auth/presentation/widgets/oauth_buttons.dart\n  - Google/Apple/Kakao 버튼 공통 핸들러에서 AppSnackbar로 취소/네트워크/일반 오류 분기\n  - 일반 오류 시 showOAuthErrorWithRetry()로 재시도 액션 제공\n- URL 스킴 구성 확인:\n  - Android: android/app/src/main/AndroidManifest.xml\n    - tricount://auth/google, tricount://auth/apple, tricount://auth/kakao 인텐트 필터 구성\n    - splitbills://invite 인텐트 필터 구성\n    - io.supabase.tricount://login-callback 커스텀 스킴 인텐트 필터 포함\n  - iOS: ios/Runner/Info.plist\n    - CFBundleURLTypes에 io.supabase.tricount, tricount, splitbills 스킴 등록\n- 환경 파일 경로 명시 및 병합 규칙:\n  - lib/config/environment.dart 기준 assets/env/.env(베이스) + 환경별 오버레이(.env.dev/.env.prod 등) 병합 로드\n  - 필수 키(SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_REDIRECT_URI) 누락 시 StateError 발생\n- 수동 검증 가이드:\n  - SUPABASE_REDIRECT_URI를 assets/env/.env.*에 설정 후 앱 부팅 시 BootstrapErrorPage 미노출인지 확인\n  - Android에서 tricount://auth/google(또는 apple/kakao), iOS에서 동일 스킴으로 딥링크 열어 콜백 처리 확인\n  - OAuth 취소/네트워크 차단/일반 오류 상황에서 각 표준 스낵바 메시지 및 재시도 버튼 동작 확인\n</info added on 2025-11-08T04:29:34.579Z>",
+            "status": "done",
             "testStrategy": "- 잘못된/누락된 ENV일 때 경고 노출 단위 테스트\n- 의도적 취소 발생 시 표준 스낵바 문구/스타일 확인"
           },
           {
@@ -941,7 +941,7 @@
       ],
       "created": "2025-11-07T21:42:39.695Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-08T04:24:30.911Z"
+      "updated": "2025-11-08T04:29:34.944Z"
     }
   }
 }
