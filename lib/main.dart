@@ -10,6 +10,7 @@ import 'bootstrap/bootstrap_error_page.dart';
 import 'common/services/auth_service.dart';
 import 'config/environment.dart';
 import 'core/auth/auth_callback_handler.dart';
+import 'core/constants/constants.dart';
 import 'core/deep_link/deep_link_handler.dart';
 import 'core/invite/invite_handler.dart';
 import 'features/home/home_page.dart';
@@ -171,6 +172,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
+  StreamSubscription<AuthState>? _authStateSubscription;
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
@@ -183,6 +185,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initializeHandlers();
     _listenToDeepLinks();
+    _listenToAuthStateChanges();
   }
 
   void _initializeHandlers() {
@@ -378,9 +381,60 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  /// 인증 상태 변화 구독
+  ///
+  /// 세션 생성/만료/갱신 시 자동으로 라우팅을 업데이트합니다.
+  void _listenToAuthStateChanges() {
+    final client = Supabase.instance.client;
+    _authStateSubscription = client.auth.onAuthStateChange.listen(
+      (AuthState state) {
+        debugPrint('인증 상태 변경: ${state.event}');
+        
+        if (!mounted) return;
+
+        final currentLocation = appRouter.routerDelegate.currentConfiguration.uri.path;
+
+        switch (state.event) {
+          case AuthChangeEvent.initialSession:
+            // 초기 세션 로드 시는 SplashPage에서 처리하므로 무시
+            break;
+          case AuthChangeEvent.signedIn:
+            // 로그인 성공 시 홈으로 이동 (SplashPage가 아닌 경우)
+            if (currentLocation != RouteConstants.splash) {
+              _safeNavigate(RouteConstants.home);
+            }
+            break;
+          case AuthChangeEvent.signedOut:
+          case AuthChangeEvent.userDeleted:
+            // 로그아웃 또는 사용자 삭제 시 인증 페이지로 이동
+            if (currentLocation != RouteConstants.splash &&
+                currentLocation != RouteConstants.auth) {
+              _safeNavigate(RouteConstants.auth);
+            }
+            break;
+          case AuthChangeEvent.tokenRefreshed:
+            // 토큰 갱신 시 라우터만 리프레시 (현재 위치 유지)
+            appRouter.refresh();
+            break;
+          case AuthChangeEvent.passwordRecovery:
+          case AuthChangeEvent.userUpdated:
+          case AuthChangeEvent.mfaChallengeVerified:
+            // 기타 이벤트는 라우터만 리프레시
+            appRouter.refresh();
+            break;
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('인증 상태 구독 오류: $error');
+        debugPrint('스택 트레이스: $stackTrace');
+      },
+    );
+  }
+
   @override
   void dispose() {
     _linkSubscription?.cancel();
+    _authStateSubscription?.cancel();
     super.dispose();
   }
 

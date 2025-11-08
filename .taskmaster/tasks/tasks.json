@@ -83,8 +83,8 @@
             "title": "Splash/Auth/Home 라우팅 구성 및 onAuthStateChange 구독 연결",
             "description": "go_router 기반으로 Splash→Auth/Home 전환과 세션 변화 구독을 구현합니다.",
             "dependencies": [],
-            "details": "`lib/app_router.dart`에 `GoRouter`를 정의하고, `SplashPage`에서 `supabase.auth.currentSession` 확인 후 초기 라우팅을 수행합니다. `supabase.auth.onAuthStateChange`를 앱 최상단(AuthScope 혹은 RouterRefreshListenable)에서 구독하여 `SignedIn/SignedOut/TokenRefreshed` 이벤트마다 `router.refresh()` 또는 `context.go('/home'|'/auth')`로 반영합니다. 관련 화면은 `lib/features/auth/presentation/splash_page.dart`, `auth_page.dart`, `home_page.dart`를 사용합니다.",
-            "status": "pending",
+            "details": "`lib/app_router.dart`에 `GoRouter`를 정의하고, `SplashPage`에서 `supabase.auth.currentSession` 확인 후 초기 라우팅을 수행합니다. `supabase.auth.onAuthStateChange`를 앱 최상단(AuthScope 혹은 RouterRefreshListenable)에서 구독하여 `SignedIn/SignedOut/TokenRefreshed` 이벤트마다 `router.refresh()` 또는 `context.go('/home'|'/auth')`로 반영합니다. 관련 화면은 `lib/features/auth/presentation/splash_page.dart`, `auth_page.dart`, `home_page.dart`를 사용합니다.\n<info added on 2025-11-08T04:23:12.610Z>\n구현 완료 사항:\n- 최상단 구독 위치: `lib/main.dart:166`(MyApp) / 상태 클래스 `lib/main.dart:173`에 `StreamSubscription<AuthState>? _authStateSubscription` 추가, `initState`에서 `_listenToAuthStateChanges()` 호출, `dispose`에서 구독 취소.\n- 이벤트 매핑: `lib/main.dart:390` 인근\n  - `signedIn`: 현재 경로가 `RouteConstants.splash`가 아닐 때만 홈으로 이동(`RouteConstants.home`)\n  - `signedOut`/`userDeleted`: 현재 경로가 `splash`/`auth`가 아닐 때만 인증 페이지로 이동(`RouteConstants.auth`)\n  - `tokenRefreshed`: `appRouter.refresh()`로 현재 위치 유지\n  - `initialSession`: 무시(Splash에서 처리)\n  - 기타(`passwordRecovery/userUpdated/mfaChallengeVerified`): `appRouter.refresh()`\n- 현재 위치 확인으로 중복 네비 방지: `appRouter.routerDelegate.currentConfiguration.uri.path` 기준으로 가드 적용.\n- 관련 참조: 라우터 `lib/app_router.dart:12`, 경로 상수 `lib/core/constants/route_constants.dart`, 초기 라우팅은 `lib/features/splash/splash_page.dart`에서 `currentSession` 확인 후 수행. 이후 세션 변화는 `onAuthStateChange`에서만 처리.\n</info added on 2025-11-08T04:23:12.610Z>",
+            "status": "done",
             "testStrategy": "- 세션 null/존재에 따른 리다이렉트 위젯 테스트\n- onAuthStateChange 모킹 후 라우터 전환 단위 테스트"
           },
           {
@@ -94,8 +94,8 @@
             "dependencies": [
               1
             ],
-            "details": "`lib/features/auth/application/auth_service.dart`에 `signInWithGoogle/Apple/Kakao`를 구현하고 내부에서 `supabase.auth.signInWithOAuth`를 호출합니다. `redirectTo`는 `dotenv.env['SUPABASE_REDIRECT_URI']` 사용. Apple은 `Platform.isIOS` 가드, Kakao는 Supabase Custom Provider(`Provider('kakao')`) 사용. `lib/features/auth/presentation/widgets/oauth_buttons.dart`에서 3종 버튼을 배치하고 서비스 호출 결과에 따라 성공 시 `context.go('/home')` 처리.",
-            "status": "pending",
+            "details": "`lib/features/auth/application/auth_service.dart`에 `signInWithGoogle/Apple/Kakao`를 구현하고 내부에서 `supabase.auth.signInWithOAuth`를 호출합니다. `redirectTo`는 `dotenv.env['SUPABASE_REDIRECT_URI']` 사용. Apple은 `Platform.isIOS` 가드, Kakao는 Supabase Custom Provider(`Provider('kakao')`) 사용. `lib/features/auth/presentation/widgets/oauth_buttons.dart`에서 3종 버튼을 배치하고 서비스 호출 결과에 따라 성공 시 `context.go('/home')` 처리.\n<info added on 2025-11-08T04:24:30.469Z>\n구현 반영 사항:\n- OAuth 버튼 위젯 분리 완료: lib/features/auth/presentation/widgets/oauth_buttons.dart에 OAuthButtons(ConsumerWidget) 추가, 내부에 _GoogleButton/_AppleButton/_KakaoButton 구성. 버튼 탭 시 ref.read(authServiceProvider).signInWithProvider(provider) 호출로 서비스 계층 경유.\n- Apple iOS 가드: 동일 파일에서 Platform.isIOS 조건으로 Apple 버튼을 iOS에서만 노출(Android 비노출).\n- AuthPage 리팩토링: lib/features/auth/auth_page.dart에서 OAuth 버튼 로직을 OAuthButtons 위젯으로 이관, _signInWithProvider 제거. 페이지 진입 시 저장된 에러 스낵바만 처리.\n- Kakao Provider: lib/features/auth/presentation/widgets/oauth_buttons.dart에서 OAuthProvider.kakao 사용. Custom Provider('kakao') 불필요.\n- 리다이렉트 URI: lib/data/repositories/auth_repository_impl.dart에서 Environment.buildSupabaseRedirectUri(provider.name)로 provider별 redirectTo 구성(Supabase SDK v2 패턴 준수).\n- 로그인 성공 후 라우팅: 별도의 context.go 호출 제거. main.dart의 client.auth.onAuthStateChange 리스너에서 AuthChangeEvent.signedIn 시 RouteConstants.home으로 이동 처리.\n</info added on 2025-11-08T04:24:30.469Z>",
+            "status": "done",
             "testStrategy": "- 각 프로바이더 호출 성공/실패/취소를 모킹하여 버튼 탭 흐름 테스트\n- iOS/Android에서 Apple 가드 동작 검증(가짜 플랫폼 세팅)"
           },
           {
@@ -940,7 +940,8 @@
         "master"
       ],
       "created": "2025-11-07T21:42:39.695Z",
-      "description": "Tasks for master context"
+      "description": "Tasks for master context",
+      "updated": "2025-11-08T04:24:30.911Z"
     }
   }
 }
