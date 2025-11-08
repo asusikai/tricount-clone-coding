@@ -21,25 +21,28 @@ import 'features/home/home_page.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await runZonedGuarded(() async {
-    FlutterError.onError = (FlutterErrorDetails details) {
-      Zone.current.handleUncaughtError(
-        details.exception,
-        details.stack ?? StackTrace.empty,
-      );
-    };
+  await runZonedGuarded(
+    () async {
+      FlutterError.onError = (FlutterErrorDetails details) {
+        Zone.current.handleUncaughtError(
+          details.exception,
+          details.stack ?? StackTrace.empty,
+        );
+      };
 
-    runApp(const _BootstrapApp());
-  }, (Object error, StackTrace stackTrace) {
-    debugPrint('Unhandled zone error: $error');
-    debugPrint(stackTrace.toString());
-  });
+      runApp(const _BootstrapApp());
+    },
+    (Object error, StackTrace stackTrace) {
+      debugPrint('Unhandled zone error: $error');
+      debugPrint(stackTrace.toString());
+    },
+  );
 }
 
 enum _BootstrapStatus { initializing, ready, failed }
 
 class _BootstrapApp extends StatefulWidget {
-  const _BootstrapApp({super.key});
+  const _BootstrapApp();
 
   @override
   State<_BootstrapApp> createState() => _BootstrapAppState();
@@ -90,13 +93,10 @@ class _BootstrapAppState extends State<_BootstrapApp> {
             '환경 설정 검증 실패:\n${issues.join('\n')}\n\n'
             'Android 가이드:\n${validationResult.urlSchemes.androidGuide}\n\n'
             'iOS 가이드:\n${validationResult.urlSchemes.iosGuide}';
-        
+
         // ConfigError로 매핑하여 로깅
-        ErrorMapper.mapAndLog(
-          StateError(errorMessage),
-          context: '환경 변수 검증 실패',
-        );
-        
+        ErrorMapper.mapAndLog(StateError(errorMessage), context: '환경 변수 검증 실패');
+
         throw StateError(errorMessage);
       }
 
@@ -166,8 +166,7 @@ class _BootstrapAppState extends State<_BootstrapApp> {
       case _BootstrapStatus.failed:
         return MaterialApp(
           home: BootstrapErrorPage(
-            message: _errorMessage ??
-                '앱을 준비하는 중 알 수 없는 오류가 발생했습니다.',
+            message: _errorMessage ?? '앱을 준비하는 중 알 수 없는 오류가 발생했습니다.',
             technicalDetails: _technicalDetails(),
             onRetry: _bootstrap,
           ),
@@ -177,16 +176,12 @@ class _BootstrapAppState extends State<_BootstrapApp> {
 }
 
 class _BootstrapLoadingApp extends StatelessWidget {
-  const _BootstrapLoadingApp({super.key});
+  const _BootstrapLoadingApp();
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      home: Scaffold(body: Center(child: CircularProgressIndicator())),
     );
   }
 }
@@ -342,17 +337,11 @@ class _MyAppState extends State<MyApp> {
     messenger
       ?..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 3),
-        ),
+        SnackBar(content: Text(message), duration: const Duration(seconds: 3)),
       );
   }
 
-  void _showInviteErrorSnackbar(
-    String message, {
-    String? inviteCode,
-  }) {
+  void _showInviteErrorSnackbar(String message, {String? inviteCode}) {
     if (!mounted) {
       return;
     }
@@ -468,10 +457,11 @@ class _MyAppState extends State<MyApp> {
     _authStateSubscription = client.auth.onAuthStateChange.listen(
       (AuthState state) {
         debugPrint('인증 상태 변경: ${state.event}');
-        
+
         if (!mounted) return;
 
-        final currentLocation = appRouter.routerDelegate.currentConfiguration.uri.path;
+        final currentLocation =
+            appRouter.routerDelegate.currentConfiguration.uri.path;
 
         switch (state.event) {
           case AuthChangeEvent.initialSession:

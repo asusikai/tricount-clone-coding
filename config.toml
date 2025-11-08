@@ -1,0 +1,34 @@
+[project]
+name = "splitBills"
+description = "Tricount 클론 프로젝트 (Flutter + Supabase)"
+language = "dart"
+framework = "flutter"
+
+[paths]
+tasks = ".taskmaster/tasks/tasks.json"
+state = ".taskmaster/state.json"
+agents = "AGENTS.md"
+plan = "plan.md"
+
+[taskmaster]
+auto_commit = true
+analysis = true
+default_priority = "medium"
+default_complexity = "medium"
+
+[git]
+default_branch = "dev"
+remote = "origin"
+
+[ai]
+provider = "openai"
+model = "gpt-5"
+temperature = 0.2
+
+[agents]
+enable_values_check = true
+enable_docs_sync = true
+
+[codex]
+default_agent = "taskmaster-ai"
+auto_push = false

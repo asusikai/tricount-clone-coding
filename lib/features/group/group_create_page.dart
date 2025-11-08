@@ -82,7 +82,7 @@ class _GroupCreatePageState extends ConsumerState<GroupCreatePage> {
             ),
             const SizedBox(height: 24),
             DropdownButtonFormField<String>(
-              value: _selectedCurrency,
+              initialValue: _selectedCurrency,
               decoration: const InputDecoration(
                 labelText: '기본 통화',
                 border: OutlineInputBorder(),

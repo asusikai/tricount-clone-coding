@@ -73,16 +73,14 @@ class AuthCallbackHandler {
       debugPrint('세션 가져오기 시도: ${enhancedUri.toString()} ($timeInfo)');
       final sessionResponse = await client.auth.getSessionFromUrl(enhancedUri);
 
-      if (sessionResponse != null && sessionResponse.session != null) {
-        debugPrint('세션 가져오기 성공');
-        // 로그인 성공 시 시간, 에러, 플로우 상태 초기화
-        AuthService.clearSignInAttemptTime();
-        AuthService.clearAuthError();
-        AuthService.clearFlowState(provider);
-        await _processSuccessfulLogin(client);
-        return;
-      }
-    } catch (error, stackTrace) {
+      debugPrint('세션 가져오기 성공');
+      // 로그인 성공 시 시간, 에러, 플로우 상태 초기화
+      AuthService.clearSignInAttemptTime();
+      AuthService.clearAuthError();
+      AuthService.clearFlowState(provider);
+      await _processSuccessfulLogin(client);
+      return;
+        } catch (error, stackTrace) {
       debugPrint('getSessionFromUrl 실패: $error');
       debugPrint('스택 트레이스: $stackTrace');
 
@@ -102,16 +100,14 @@ class AuthCallbackHandler {
             final retryResponse = await client.auth.getSessionFromUrl(
               enhancedUri,
             );
-            if (retryResponse != null && retryResponse.session != null) {
-              debugPrint('재시도 성공 (시도 ${i + 1}번)');
-              AuthService.clearSignInAttemptTime();
-              AuthService.clearAuthError();
-              AuthService.clearFlowState(provider);
-              await _processSuccessfulLogin(client);
-              retrySuccess = true;
-              break;
-            }
-          } catch (retryError) {
+            debugPrint('재시도 성공 (시도 ${i + 1}번)');
+            AuthService.clearSignInAttemptTime();
+            AuthService.clearAuthError();
+            AuthService.clearFlowState(provider);
+            await _processSuccessfulLogin(client);
+            retrySuccess = true;
+            break;
+                    } catch (retryError) {
             debugPrint('재시도 ${i + 1}번 실패: $retryError');
           }
         }

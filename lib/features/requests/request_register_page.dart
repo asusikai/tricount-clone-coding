@@ -31,9 +31,9 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
   bool _isSubmitting = false;
 
   Map<String, dynamic>? get _selectedGroup => _groups.firstWhere(
-        (group) => group['id'] == _selectedGroupId,
-        orElse: () => <String, dynamic>{},
-      );
+    (group) => group['id'] == _selectedGroupId,
+    orElse: () => <String, dynamic>{},
+  );
 
   @override
   void initState() {
@@ -63,10 +63,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
       setState(() {
         _isLoading = false;
       });
-      SnackBarHelper.showError(
-        context,
-        '그룹 목록을 불러오지 못했습니다: $error',
-      );
+      SnackBarHelper.showError(context, '그룹 목록을 불러오지 못했습니다: $error');
     }
   }
 
@@ -76,8 +73,9 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
     });
 
     try {
-      final members =
-          await ref.read(groupServiceProvider).getGroupMembers(groupId);
+      final members = await ref
+          .read(groupServiceProvider)
+          .getGroupMembers(groupId);
       if (!mounted) {
         return;
       }
@@ -86,9 +84,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
 
       setState(() {
         _members = members
-            .where(
-              (member) => member['id'] != currentUser?.id,
-            )
+            .where((member) => member['id'] != currentUser?.id)
             .toList(growable: false);
         _selectedUserId = null;
         _isLoadingMembers = false;
@@ -101,10 +97,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
       setState(() {
         _isLoadingMembers = false;
       });
-      SnackBarHelper.showError(
-        context,
-        '그룹 멤버를 불러오지 못했습니다: $error',
-      );
+      SnackBarHelper.showError(context, '그룹 멤버를 불러오지 못했습니다: $error');
     }
   }
 
@@ -128,10 +121,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
     final groupId = _selectedGroupId;
     final toUserId = _selectedUserId;
     if (groupId == null || toUserId == null) {
-      SnackBarHelper.showError(
-        context,
-        '그룹과 송금 받을 사용자를 선택해주세요.',
-      );
+      SnackBarHelper.showError(context, '그룹과 송금 받을 사용자를 선택해주세요.');
       return;
     }
 
@@ -143,7 +133,9 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
       final group = _selectedGroup;
       final currency = (group?['base_currency'] as String?) ?? 'KRW';
 
-      await ref.read(requestServiceProvider).createRequest(
+      await ref
+          .read(requestServiceProvider)
+          .createRequest(
             groupId: groupId,
             fromUserId: user.id,
             toUserId: toUserId,
@@ -185,139 +177,130 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('송금 요청 등록'),
-      ),
+      appBar: AppBar(title: const Text('송금 요청 등록')),
       body: _isLoading
           ? const LoadingView(message: '그룹 정보를 불러오는 중입니다...')
           : _groups.isEmpty
-              ? EmptyStateView(
-                  icon: Icons.group_add_outlined,
-                  title: '가입된 그룹이 없습니다.',
-                  message: '먼저 그룹에 참여하거나 새로운 그룹을 만들어주세요.',
-                  action: RetryButton(
-                    label: '그룹 목록 새로고침',
-                    onPressed: () => unawaited(_loadGroups()),
-                  ),
-                )
-              : SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: _selectedGroupId,
-                            decoration:
-                                const InputDecoration(labelText: '그룹 선택'),
-                            items: _groups
-                                .map(
-                                  (group) => DropdownMenuItem<String>(
-                                    value: group['id'] as String,
-                                    child: Text(
-                                      group['name'] as String? ?? '이름 없음',
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedGroupId = value;
-                              });
-                              if (value != null) {
-                                unawaited(_loadMembers(value));
-                              }
-                            },
-                            validator: (value) =>
-                                value == null ? '그룹을 선택해주세요.' : null,
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<String>(
-                            value: _selectedUserId,
-                            decoration:
-                                const InputDecoration(labelText: '송금 대상'),
-                            items: _members
-                                .map(
-                                  (member) => DropdownMenuItem<String>(
-                                    value: member['id'] as String,
-                                    child: Text(
-                                      (member['nickname'] as String?) ??
-                                          (member['name'] as String?) ??
-                                          (member['email'] as String?) ??
-                                          '이름 없음',
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedUserId = value;
-                              });
-                            },
-                            validator: (value) =>
-                                value == null ? '송금 대상을 선택해주세요.' : null,
-                            disabledHint: const Text('그룹을 먼저 선택해주세요.'),
-                            isExpanded: true,
-                          ),
-                          if (_isLoadingMembers)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
-                              child: LinearProgressIndicator(),
-                            ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _amountController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: InputDecoration(
-                              labelText: '금액',
-                              suffixText:
-                                  (_selectedGroup?['base_currency'] as String?) ??
-                                      'KRW',
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^[0-9]*\.?[0-9]{0,2}$'),
+          ? EmptyStateView(
+              icon: Icons.group_add_outlined,
+              title: '가입된 그룹이 없습니다.',
+              message: '먼저 그룹에 참여하거나 새로운 그룹을 만들어주세요.',
+              action: RetryButton(
+                label: '그룹 목록 새로고침',
+                onPressed: () => unawaited(_loadGroups()),
+              ),
+            )
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedGroupId,
+                        decoration: const InputDecoration(labelText: '그룹 선택'),
+                        items: _groups
+                            .map(
+                              (group) => DropdownMenuItem<String>(
+                                value: group['id'] as String,
+                                child: Text(
+                                  group['name'] as String? ?? '이름 없음',
+                                ),
                               ),
-                            ],
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return '금액을 입력해주세요.';
-                              }
-                              final parsed = double.tryParse(value);
-                              if (parsed == null || parsed <= 0) {
-                                return '올바른 금액을 입력해주세요.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _memoController,
-                            decoration: const InputDecoration(
-                              labelText: '메모 (선택)',
-                            ),
-                            maxLength: 80,
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: _isSubmitting ? null : _submit,
-                              icon: const Icon(Icons.send),
-                              label: Text(
-                                _isSubmitting ? '등록 중...' : '송금 요청 등록',
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedGroupId = value;
+                          });
+                          if (value != null) {
+                            unawaited(_loadMembers(value));
+                          }
+                        },
+                        validator: (value) =>
+                            value == null ? '그룹을 선택해주세요.' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedUserId,
+                        decoration: const InputDecoration(labelText: '송금 대상'),
+                        items: _members
+                            .map(
+                              (member) => DropdownMenuItem<String>(
+                                value: member['id'] as String,
+                                child: Text(
+                                  (member['nickname'] as String?) ??
+                                      (member['name'] as String?) ??
+                                      (member['email'] as String?) ??
+                                      '이름 없음',
+                                ),
                               ),
-                            ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedUserId = value;
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? '송금 대상을 선택해주세요.' : null,
+                        disabledHint: const Text('그룹을 먼저 선택해주세요.'),
+                        isExpanded: true,
+                      ),
+                      if (_isLoadingMembers)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: LinearProgressIndicator(),
+                        ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _amountController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: '금액',
+                          suffixText:
+                              (_selectedGroup?['base_currency'] as String?) ??
+                              'KRW',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'^[0-9]*\.?[0-9]{0,2}$'),
                           ),
                         ],
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return '금액을 입력해주세요.';
+                          }
+                          final parsed = double.tryParse(value);
+                          if (parsed == null || parsed <= 0) {
+                            return '올바른 금액을 입력해주세요.';
+                          }
+                          return null;
+                        },
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _memoController,
+                        decoration: const InputDecoration(labelText: '메모 (선택)'),
+                        maxLength: 80,
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: _isSubmitting ? null : _submit,
+                          icon: const Icon(Icons.send),
+                          label: Text(_isSubmitting ? '등록 중...' : '송금 요청 등록'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+            ),
     );
   }
 }

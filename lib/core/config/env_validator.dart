@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../../config/environment.dart';
-import '../error/app_error.dart';
-import '../error/error_mapper.dart';
 
 /// 환경 변수 및 URL 스킴 검증 유틸리티
 ///
