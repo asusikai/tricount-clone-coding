@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../common/services/auth_service.dart';
+import '../../data/repositories/auth_repository_impl.dart';
 
 /// 인증 콜백 처리 핸들러
 ///
@@ -137,15 +138,25 @@ class AuthCallbackHandler {
   }
 
   Future<void> _processSuccessfulLogin(SupabaseClient client) async {
-    // 프로필 동기화 시도
-    try {
-      await AuthService.fromClient(client).syncUserProfile();
-      debugPrint('프로필 동기화 성공');
-    } catch (profileError, stackTrace) {
-      debugPrint('프로필 동기화 실패: $profileError');
-      debugPrint('스택 트레이스: $stackTrace');
-      // 프로필 동기화 실패도 에러로 처리하되, 로그인은 완료되었으므로 홈으로 이동
-      AuthService.setAuthError('프로필 동기화 중 오류가 발생했습니다: $profileError');
+    // 프로필 동기화 시도 (재시도 로직 포함)
+    final session = client.auth.currentSession;
+    if (session != null) {
+      try {
+        final repository = AuthRepositoryImpl(client);
+        final success = await repository.upsertFromAuthSession(session);
+        if (success) {
+          debugPrint('프로필 동기화 성공');
+        } else {
+          debugPrint('프로필 동기화 실패 (재시도 후에도 실패)');
+          // 재시도 후에도 실패한 경우 에러 메시지 설정
+          AuthService.setAuthError('프로필 동기화에 실패했습니다. 나중에 다시 시도해주세요.');
+        }
+      } catch (profileError, stackTrace) {
+        debugPrint('프로필 동기화 예외 발생: $profileError');
+        debugPrint('스택 트레이스: $stackTrace');
+        // 예외 발생 시에도 에러 메시지 설정
+        AuthService.setAuthError('프로필 동기화 중 오류가 발생했습니다: $profileError');
+      }
     }
 
     await onProcessPendingInvites();

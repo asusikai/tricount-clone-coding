@@ -157,31 +157,81 @@ class AuthRepositoryImpl implements AuthRepository {
     final session = _client.auth.currentSession;
     if (session == null) return;
 
+    await upsertFromAuthSession(session);
+  }
+
+  /// Auth 세션에서 사용자 정보를 추출하여 users 테이블에 upsert
+  ///
+  /// [session] Supabase Auth 세션
+  /// [maxRetries] 최대 재시도 횟수 (기본값: 3)
+  ///
+  /// 반환: upsert 성공 여부
+  Future<bool> upsertFromAuthSession(
+    Session session, {
+    int maxRetries = 3,
+  }) async {
     final user = session.user;
+    final now = DateTime.now().toIso8601String();
+
+    // 필수 필드 추출
     final name = _extractName(user.userMetadata);
     final provider = _extractProvider(session);
+    final nickname = _extractNickname(user.userMetadata);
+    final avatarUrl = _extractAvatarUrl(user.userMetadata, user);
 
-    final payload =
-        <String, dynamic>{
-          'id': user.id,
-          'email': user.email,
-          'name': name,
-          'provider': provider,
-        }..removeWhere(
-          (key, value) => value == null || (value is String && value.isEmpty),
-        );
+    // upsert 페이로드 구성
+    final payload = <String, dynamic>{
+      'id': user.id,
+      'email': user.email ?? '',
+      'updated_at': now,
+    };
 
-    if (payload.isEmpty) return;
-
-    try {
-      await _client.from('users').upsert(payload, onConflict: 'id');
-    } catch (error, stackTrace) {
-      throw ErrorHandler.handleAndLog(
-        error,
-        stackTrace: stackTrace,
-        context: '사용자 프로필 동기화 실패',
-      );
+    // 선택적 필드 추가 (null이 아닌 경우만)
+    if (name != null && name.isNotEmpty) {
+      payload['name'] = name;
     }
+    if (nickname != null && nickname.isNotEmpty) {
+      payload['nickname'] = nickname;
+    }
+    if (provider != null && provider.isNotEmpty) {
+      payload['provider'] = provider;
+    }
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      payload['avatar_url'] = avatarUrl;
+    }
+
+    // created_at은 새 사용자인 경우에만 설정 (upsert의 onConflict로 처리)
+    // Supabase의 upsert는 기존 레코드가 있으면 created_at을 유지하고,
+    // 없으면 새로 생성하므로 별도 처리 불필요
+
+    // 재시도 로직
+    int attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        await _client.from('users').upsert(payload, onConflict: 'id');
+        debugPrint('사용자 프로필 upsert 성공 (시도 ${attempt + 1})');
+        return true;
+      } catch (error, stackTrace) {
+        attempt++;
+        debugPrint('사용자 프로필 upsert 실패 (시도 $attempt/$maxRetries): $error');
+
+        if (attempt >= maxRetries) {
+          // 최대 재시도 횟수 초과
+          ErrorHandler.handleAndLog(
+            error,
+            stackTrace: stackTrace,
+            context: '사용자 프로필 동기화 실패 (최대 재시도 횟수 초과)',
+          );
+          return false;
+        }
+
+        // 재시도 전 대기 (지수 백오프)
+        final delayMs = 500 * attempt; // 500ms, 1000ms, 1500ms...
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
+
+    return false;
   }
 
   String _buildRedirectUri(OAuthProvider provider) {
@@ -213,7 +263,6 @@ class AuthRepositoryImpl implements AuthRepository {
       'full_name',
       'name',
       'display_name',
-      'nickname',
       'preferred_username',
     ];
 
@@ -226,5 +275,38 @@ class AuthRepositoryImpl implements AuthRepository {
 
     return null;
   }
-}
 
+  String? _extractNickname(Map<String, dynamic>? metadata) {
+    if (metadata == null) return null;
+
+    const nicknameKeys = ['nickname', 'preferred_username', 'username'];
+
+    for (final key in nicknameKeys) {
+      final value = metadata[key];
+      if (value is String && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+
+    return null;
+  }
+
+  String? _extractAvatarUrl(Map<String, dynamic>? metadata, User user) {
+    // userMetadata에서 avatar_url 추출
+    if (metadata != null) {
+      final avatarUrl = metadata['avatar_url'] ?? metadata['picture'];
+      if (avatarUrl is String && avatarUrl.trim().isNotEmpty) {
+        return avatarUrl.trim();
+      }
+    }
+
+    // user 객체의 avatar_url 확인
+    final userAvatarUrl =
+        user.userMetadata?['avatar_url'] ?? user.userMetadata?['picture'];
+    if (userAvatarUrl is String && userAvatarUrl.trim().isNotEmpty) {
+      return userAvatarUrl.trim();
+    }
+
+    return null;
+  }
+}

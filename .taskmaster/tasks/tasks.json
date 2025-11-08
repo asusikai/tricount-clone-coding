@@ -117,8 +117,8 @@
             "dependencies": [
               2
             ],
-            "details": "`lib/data/repositories/user_repository.dart`에 `upsertFromAuthUser(AuthResponse/Session)` 메서드를 추가해 `supabase.from('users').upsert({...}, onConflict:'id')` 호출을 구현합니다. 필드: `id/email/name/nickname/provider/avatar_url/created_at/updated_at`. 로그인 성공 직후 AuthService에서 1회 호출하고 실패 시 재시도 가능하도록 결과를 반환합니다.",
-            "status": "pending",
+            "details": "`lib/data/repositories/user_repository.dart`에 `upsertFromAuthUser(AuthResponse/Session)` 메서드를 추가해 `supabase.from('users').upsert({...}, onConflict:'id')` 호출을 구현합니다. 필드: `id/email/name/nickname/provider/avatar_url/created_at/updated_at`. 로그인 성공 직후 AuthService에서 1회 호출하고 실패 시 재시도 가능하도록 결과를 반환합니다.\n<info added on 2025-11-08T04:33:44.539Z>\n구현 위치 및 시그니처 업데이트: users upsert 유틸은 lib/data/repositories/auth_repository_impl.dart의 upsertFromAuthSession(Session)으로 제공되며, onConflict: 'id' 옵션으로 supabase.from('users').upsert(payload, onConflict: 'id')를 호출합니다. 필드는 id, email, name, nickname, provider, avatar_url, updated_at만 포함하고 created_at은 DB 기본값에 위임합니다. 재시도 로직은 최대 3회, 지수 백오프 500ms/1000ms/1500ms로 수행하며 성공/실패를 bool로 반환합니다. 보조 추출기 추가: _extractNickname(userMetadata에서 nickname/ preferred_username/ username), _extractAvatarUrl(userMetadata의 avatar_url/picture 우선, 없으면 user.userMetadata), _extractName는 기존 키(full_name, name, display_name, preferred_username)만 사용하며 nickname 키는 제외합니다. syncUserProfile()은 현재 세션을 읽어 내부에서 upsertFromAuthSession을 호출하도록 개선했으며 AuthService를 통한 기존 호출 경로와 호환됩니다. AuthCallbackHandler 개선: lib/core/auth/auth_callback_handler.dart의 _processSuccessfulLogin에서 repository.upsertFromAuthSession(session) 결과를 확인하고 실패 시 AuthService.setAuthError로 사용자 친화적 메시지를 설정하며, 로그인은 완료하되 프로필 동기화 실패는 로그로 남깁니다. 참고: nickname 필드는 현재 supabase.sql의 users 테이블에 없을 수 있으며, 이 경우 upsert 시 해당 필드는 무시됩니다.\n</info added on 2025-11-08T04:33:44.539Z>",
+            "status": "done",
             "testStrategy": "- 새 사용자/기존 사용자 각각 upsert idempotency 검증\n- 누락 필드/네트워크 오류 시 예외 로깅 및 호출부 재시도 분기 테스트"
           },
           {
@@ -941,7 +941,7 @@
       ],
       "created": "2025-11-07T21:42:39.695Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-08T04:29:34.944Z"
+      "updated": "2025-11-08T04:33:44.895Z"
     }
   }
 }
