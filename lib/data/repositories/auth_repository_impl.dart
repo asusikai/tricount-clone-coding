@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/environment.dart';
+import '../../core/error/error_mapper.dart';
 import '../../core/errors/errors.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -118,6 +119,13 @@ class AuthRepositoryImpl implements AuthRepository {
       // 로그인 실패 시 시간 초기화 및 상태 제거
       _lastSignInAttemptTime = null;
       clearFlowState(provider.name);
+      // AppError로 매핑하여 로깅
+      final appError = ErrorMapper.mapAndLog(
+        error,
+        stackTrace: stackTrace,
+        context: 'OAuth 로그인 실패 (${provider.name})',
+      );
+      // 기존 호환성을 위해 AppException으로 변환하여 throw
       throw ErrorHandler.handleAndLog(
         error,
         stackTrace: stackTrace,
@@ -216,8 +224,8 @@ class AuthRepositoryImpl implements AuthRepository {
         debugPrint('사용자 프로필 upsert 실패 (시도 $attempt/$maxRetries): $error');
 
         if (attempt >= maxRetries) {
-          // 최대 재시도 횟수 초과
-          ErrorHandler.handleAndLog(
+          // 최대 재시도 횟수 초과 - AppError로 매핑하여 로깅
+          ErrorMapper.mapAndLog(
             error,
             stackTrace: stackTrace,
             context: '사용자 프로필 동기화 실패 (최대 재시도 횟수 초과)',

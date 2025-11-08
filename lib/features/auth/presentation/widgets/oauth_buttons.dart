@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../common/services/auth_service.dart';
+import '../../../../core/error/app_error.dart';
+import '../../../../core/error/error_mapper.dart';
 import '../../../../core/ui/app_snackbar.dart';
 import '../../../../presentation/providers/providers.dart';
 
@@ -48,27 +50,38 @@ class OAuthButtons extends ConsumerWidget {
       // 로그인 성공 시 콜백에서 자동으로 홈으로 이동됨
       // (onAuthStateChange에서 처리)
     } catch (e, stackTrace) {
-      debugPrint('로그인 실패: $e');
-      debugPrint('스택 트레이스: $stackTrace');
       // 로그인 실패 시 시간 초기화
       AuthService.clearSignInAttemptTime();
       if (!context.mounted) return;
 
-      // 표준화된 오류 메시지 표시
-      final errorString = e.toString().toLowerCase();
-      if (errorString.contains('cancelled') ||
-          errorString.contains('canceled') ||
-          errorString.contains('취소')) {
-        AppSnackbar.showCancelled(context);
-      } else if (errorString.contains('network') ||
-          errorString.contains('connection')) {
-        AppSnackbar.showNetworkError(context);
-      } else {
-        AppSnackbar.showOAuthErrorWithRetry(
-          context,
-          e,
-          () => _handleSignIn(context, ref, provider),
-        );
+      // AppError로 매핑하여 처리
+      final appError = ErrorMapper.mapAndLog(
+        e,
+        stackTrace: stackTrace,
+        context: 'OAuth 로그인 실패',
+      );
+
+      // AppError 타입에 따라 적절한 UI 표시
+      switch (appError) {
+        case CancelledError():
+          AppSnackbar.showCancelled(context);
+        case NetworkError():
+          AppSnackbar.showErrorWithRetry(
+            context,
+            appError,
+            () => _handleSignIn(context, ref, provider),
+          );
+        case AuthError():
+        case ConfigError():
+        case PermissionError():
+        case NotFoundError():
+        case ValidationError():
+        case UnknownError():
+          AppSnackbar.showErrorWithRetry(
+            context,
+            appError,
+            () => _handleSignIn(context, ref, provider),
+          );
       }
     }
   }

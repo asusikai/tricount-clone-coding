@@ -14,6 +14,7 @@ import 'core/auth/auth_state_manager.dart';
 import 'core/config/env_validator.dart';
 import 'core/constants/constants.dart';
 import 'core/deep_link/deep_link_handler.dart';
+import 'core/error/error_mapper.dart';
 import 'core/invite/invite_handler.dart';
 import 'features/home/home_page.dart';
 
@@ -85,11 +86,18 @@ class _BootstrapAppState extends State<_BootstrapApp> {
         if (!validationResult.urlSchemes.isValid) {
           issues.add(validationResult.urlSchemes.message);
         }
-        throw StateError(
-          '환경 설정 검증 실패:\n${issues.join('\n')}\n\n'
-          'Android 가이드:\n${validationResult.urlSchemes.androidGuide}\n\n'
-          'iOS 가이드:\n${validationResult.urlSchemes.iosGuide}',
+        final errorMessage =
+            '환경 설정 검증 실패:\n${issues.join('\n')}\n\n'
+            'Android 가이드:\n${validationResult.urlSchemes.androidGuide}\n\n'
+            'iOS 가이드:\n${validationResult.urlSchemes.iosGuide}';
+        
+        // ConfigError로 매핑하여 로깅
+        ErrorMapper.mapAndLog(
+          StateError(errorMessage),
+          context: '환경 변수 검증 실패',
         );
+        
+        throw StateError(errorMessage);
       }
 
       await Supabase.initialize(

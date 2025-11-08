@@ -76,7 +76,7 @@
         "testStrategy": "- 세션 null/존재 라우팅 단위/위젯 테스트.\n- OAuth 실패/취소/재시도 UX 확인(모킹).\n- users upsert 호출 파라미터/예외 로깅 검증.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -144,8 +144,8 @@
               2,
               3
             ],
-            "details": "`lib/core/error/app_error.dart`에 `sealed class AppError`(Network/Auth/Cancelled/Config/Unknown 등) 정의, `lib/core/error/error_mapper.dart`에 SupabaseAuthException/PlatformException→AppError 매핑을 구현합니다. `AuthService`, `EnvValidator`, `UserRepository`에서 매핑 결과만 외부로 노출하고, 로깅은 `logger` 또는 `debugPrint`로 통일합니다. UI 레이어는 AppError 기준으로 스낵바/다이얼로그를 표시합니다.",
-            "status": "pending",
+            "details": "`lib/core/error/app_error.dart`에 `sealed class AppError`(Network/Auth/Cancelled/Config/Unknown 등) 정의, `lib/core/error/error_mapper.dart`에 SupabaseAuthException/PlatformException→AppError 매핑을 구현합니다. `AuthService`, `EnvValidator`, `UserRepository`에서 매핑 결과만 외부로 노출하고, 로깅은 `logger` 또는 `debugPrint`로 통일합니다. UI 레이어는 AppError 기준으로 스낵바/다이얼로그를 표시합니다.\n<info added on 2025-11-08T04:43:59.798Z>\n구현 완료\n\n1. lib/core/error/app_error.dart에 AppError sealed class 추가\n   - 타입: NetworkError, AuthError, CancelledError, ConfigError, PermissionError, NotFoundError, ValidationError, UnknownError\n   - 공통 필드: message, cause, stackTrace\n\n2. lib/core/error/error_mapper.dart에 ErrorMapper 구현\n   - toAppError: 예외→AppError 변환\n   - mapAndLog: 변환 후 debugPrint 로깅\n   - 매핑 대상: SupabaseAuthException, PlatformException, PostgrestException, StorageException\n   - 일반 Exception은 메시지 패턴 분석으로 적절한 AppError 매핑\n\n3. lib/core/ui/app_snackbar.dart 업데이트\n   - showError(AppError): 타입별 스낵바 표출\n   - showErrorWithRetry(AppError, onRetry): 재시도 액션 포함\n   - 기존 메서드는 deprecated 유지(하위 호환)\n\n4. lib/data/repositories/auth_repository_impl.dart 반영\n   - OAuth 로그인 실패/프로필 동기화 실패 시 ErrorMapper.mapAndLog 로 로깅 및 변환\n   - 기존 ErrorHandler 공존으로 하위 호환 보장\n\n5. lib/features/auth/presentation/widgets/oauth_buttons.dart 반영\n   - 로그인 실패를 ErrorMapper.mapAndLog로 AppError 변환\n   - AppError 타입에 따라 AppSnackbar.showError / showErrorWithRetry 호출\n   - sealed class 패턴 매칭으로 타입 안전 처리\n\n6. EnvValidator 및 main.dart 반영\n   - 환경 변수 검증 실패를 ConfigError로 매핑하여 mapAndLog 로깅\n   - main.dart _bootstrap에서 검증 실패 로깅 추가\n\n정책\n- 에러 로깅은 debugPrint로 통일\n- UI 레이어는 AppError 기준의 스낵바 표출로 일원화\n- 기존 API는 deprecated 주석으로 하위 호환 유지\n</info added on 2025-11-08T04:43:59.798Z>",
+            "status": "done",
             "testStrategy": "- 다양한 예외 입력에 대한 매핑 단위 테스트\n- AppError별 메시지/액션(UI) 렌더링 확인(모킹)"
           }
         ],
@@ -941,7 +941,7 @@
       ],
       "created": "2025-11-07T21:42:39.695Z",
       "description": "Tasks for master context",
-      "updated": "2025-11-08T04:40:42.073Z"
+      "updated": "2025-11-08T04:44:02.825Z"
     }
   }
 }

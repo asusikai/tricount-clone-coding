@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../error/app_error.dart';
 import '../utils/snackbar_helper.dart';
 
 /// OAuth 관련 표준화된 SnackBar 메시지
@@ -37,9 +38,87 @@ class AppSnackbar {
     );
   }
 
+  /// AppError를 표시
+  ///
+  /// [error] AppError 인스턴스
+  static void showError(BuildContext context, AppError error) {
+    switch (error) {
+      case NetworkError():
+        showNetworkError(context);
+      case CancelledError():
+        showCancelled(context);
+      case AuthError():
+        SnackBarHelper.showError(
+          context,
+          error.message,
+          duration: const Duration(seconds: 4),
+        );
+      case ConfigError():
+        showConfigError(context, error.message);
+      case PermissionError():
+        SnackBarHelper.showError(
+          context,
+          error.message,
+          duration: const Duration(seconds: 3),
+        );
+      case NotFoundError():
+      case ValidationError():
+      case UnknownError():
+        SnackBarHelper.showError(
+          context,
+          error.message,
+          duration: const Duration(seconds: 4),
+        );
+    }
+  }
+
+  /// AppError를 표시 (재시도 액션 포함)
+  ///
+  /// [error] AppError 인스턴스
+  /// [onRetry] 재시도 콜백
+  static void showErrorWithRetry(
+    BuildContext context,
+    AppError error,
+    VoidCallback onRetry,
+  ) {
+    switch (error) {
+      case NetworkError():
+        SnackBarHelper.showWithAction(
+          context,
+          error.message,
+          '재시도',
+          onRetry,
+          duration: const Duration(seconds: 5),
+        );
+      case CancelledError():
+        showCancelled(context);
+      case AuthError():
+        SnackBarHelper.showWithAction(
+          context,
+          error.message,
+          '재시도',
+          onRetry,
+          duration: const Duration(seconds: 5),
+        );
+      case ConfigError():
+      case PermissionError():
+      case NotFoundError():
+      case ValidationError():
+      case UnknownError():
+        SnackBarHelper.showWithAction(
+          context,
+          error.message,
+          '재시도',
+          onRetry,
+          duration: const Duration(seconds: 5),
+        );
+    }
+  }
+
   /// OAuth 일반 오류 메시지 표시
   ///
   /// [error] 오류 메시지 또는 예외
+  /// @deprecated Use showError with AppError instead
   static void showOAuthError(BuildContext context, Object error) {
     final message = _extractErrorMessage(error);
     SnackBarHelper.showError(
@@ -53,6 +132,7 @@ class AppSnackbar {
   ///
   /// [error] 오류 메시지 또는 예외
   /// [onRetry] 재시도 콜백
+  /// @deprecated Use showErrorWithRetry with AppError instead
   static void showOAuthErrorWithRetry(
     BuildContext context,
     Object error,
