@@ -8,3 +8,4 @@ export 'group_providers.dart';
 export 'request_providers.dart';
 export 'profile_providers.dart';
 export 'bank_account_providers.dart';
+export 'repository_providers.dart';

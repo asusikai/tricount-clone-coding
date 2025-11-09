@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../common/services/group_service.dart';
+import '../../core/errors/errors.dart';
+import '../../data/repositories/supabase_groups_repository.dart';
 import '../../features/home/home_page.dart';
 
 /// 초대 코드 처리 핸들러
@@ -69,11 +70,19 @@ class InviteHandler {
       queueInviteCode(inviteCode);
       return;
     }
+    final currentUserId = client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      queueInviteCode(inviteCode);
+      return;
+    }
 
     _processingInviteCodes.add(inviteCode);
     try {
-      final groupService = GroupService.fromClient(client);
-      final groupId = await groupService.joinGroupByInviteCode(inviteCode);
+      final repository = SupabaseGroupsRepository(client);
+      final group = await repository
+          .joinByInvite(inviteCode: inviteCode, userId: currentUserId)
+          .unwrap();
+      final groupId = group.id;
       debugPrint('그룹 가입 성공: $groupId');
       _completedInviteCodes.add(inviteCode);
       onShowMessage('그룹에 가입되었습니다.');
@@ -140,4 +149,3 @@ class InviteHandler {
     return true;
   }
 }
-

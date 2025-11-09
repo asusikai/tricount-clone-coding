@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/constants.dart';
+import '../../core/utils/utils.dart';
+import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
+import '../group/group_create_dialog.dart';
 import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';
@@ -102,17 +105,30 @@ class _HomePageState extends ConsumerState<HomePage> {
     switch (_currentTab) {
       case HomeTab.groups:
         return FloatingActionButton(
-          onPressed: () {
-            context.go(RouteConstants.groupCreate);
+          onPressed: () async {
+            final created = await showGroupCreateDialog(context);
+            if (!mounted) {
+              return;
+            }
+            if (created == true) {
+              SnackBarHelper.showSuccess(context, '그룹이 생성되었습니다.');
+            }
           },
           child: const Icon(Icons.add),
         );
       case HomeTab.requests:
         return FloatingActionButton(
           onPressed: () async {
-            final shouldRefresh = await context.push<bool>('/requests/register');
-            if (shouldRefresh == true && mounted) {
-              ref.invalidate(requestListProvider);
+            final shouldRefresh =
+                await context.push<bool>(RouteConstants.requestRegister);
+            if (!mounted) {
+              return;
+            }
+            if (shouldRefresh == true) {
+              ref.invalidate(requestListProvider(null));
+              for (final status in SettlementStatus.values) {
+                ref.invalidate(requestListProvider(status));
+              }
             }
           },
           child: const Icon(Icons.note_add),
@@ -171,8 +187,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        final shouldPop = await _onWillPop();
+        if (shouldPop && mounted) {
+          Navigator.of(context).maybePop(result);
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(_tabTitles[_currentTab]!),

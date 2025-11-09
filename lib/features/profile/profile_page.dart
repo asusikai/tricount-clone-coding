@@ -168,6 +168,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         );
       },
     );
+    if (!mounted) {
+      return;
+    }
 
     if (result == null || result.isEmpty || result == currentName) {
       return;
@@ -227,6 +230,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         );
       },
     );
+    if (!mounted) {
+      return;
+    }
 
     if (result == null || result.isEmpty || result == currentNickname) {
       return;
@@ -300,6 +306,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         );
       },
     );
+    if (!mounted) {
+      return;
+    }
 
     if (confirmed != true) {
       return;
@@ -370,6 +379,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         );
       },
     );
+    if (!mounted) {
+      return;
+    }
 
     if (confirmed != true) {
       return;

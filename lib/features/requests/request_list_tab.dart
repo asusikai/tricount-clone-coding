@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../common/models/payment_request.dart';
 import '../../core/utils/utils.dart';
+import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -19,7 +19,7 @@ class RequestsTab extends ConsumerStatefulWidget {
 
 class _RequestsTabState extends ConsumerState<RequestsTab>
     with AutomaticKeepAliveClientMixin {
-  PaymentRequestStatus? _statusFilter;
+  SettlementStatus? _statusFilter;
 
   @override
   bool get wantKeepAlive => true;
@@ -33,7 +33,7 @@ class _RequestsTabState extends ConsumerState<RequestsTab>
     }
   }
 
-  void _updateFilter(PaymentRequestStatus? status) {
+  void _updateFilter(SettlementStatus? status) {
     if (_statusFilter == status) {
       return;
     }
@@ -63,7 +63,7 @@ class _RequestsTabState extends ConsumerState<RequestsTab>
                 selected: _statusFilter == null,
                 onSelected: (_) => _updateFilter(null),
               ),
-              for (final status in PaymentRequestStatus.values)
+              for (final status in SettlementStatus.values)
                 ChoiceChip(
                   label: Text(status.label),
                   selected: _statusFilter == status,
@@ -102,7 +102,7 @@ class _RequestsTabState extends ConsumerState<RequestsTab>
 class _RequestListView extends ConsumerWidget {
   const _RequestListView({required this.requests, required this.onRefresh});
 
-  final List<PaymentRequest> requests;
+  final List<SettlementDetail> requests;
   final Future<void> Function() onRefresh;
   static const _listKey = PageStorageKey<String>('requests_list');
   static const _emptyListKey = PageStorageKey<String>('requests_list_empty');
@@ -127,23 +127,24 @@ class _RequestListView extends ConsumerWidget {
           : ListView.separated(
               key: _listKey,
               itemCount: requests.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (context, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
-                final request = requests[index];
-                final isIncoming = user != null && request.isIncoming(user.id);
-                final otherUser = request.fromUserId == user?.id
-                    ? request.toUser
-                    : request.fromUser;
-                final otherName =
-                    (otherUser?['nickname'] as String?) ??
-                    (otherUser?['name'] as String?) ??
-                    (otherUser?['email'] as String?) ??
-                    '알 수 없음';
+                final detail = requests[index];
+                final settlement = detail.settlement;
+                final isIncoming =
+                    user != null && settlement.toUserId == user.id;
+                final otherUser =
+                    settlement.fromUserId == user?.id ? detail.toUser : detail.fromUser;
+                final otherName = otherUser?.nickname?.trim().isNotEmpty == true
+                    ? otherUser!.nickname!.trim()
+                    : otherUser?.name?.trim().isNotEmpty == true
+                        ? otherUser!.name!.trim()
+                        : (otherUser?.email ?? '알 수 없음');
                 final amountText = CurrencyFormatter.formatSimple(
-                  request.amount,
-                  currency: request.currency,
+                  settlement.amount,
+                  currency: settlement.currency,
                 );
-                final groupName = request.group?['name'] as String? ?? '미확인 그룹';
+                final groupName = detail.group?.name ?? '미확인 그룹';
 
                 return ListTile(
                   leading: CircleAvatar(
@@ -158,7 +159,7 @@ class _RequestListView extends ConsumerWidget {
                     ),
                   ),
                   title: Text(otherName),
-                  subtitle: Text('$groupName · ${request.status.label}'),
+                  subtitle: Text('$groupName · ${settlement.status.label}'),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -167,9 +168,10 @@ class _RequestListView extends ConsumerWidget {
                         amountText,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      if (request.memo != null && request.memo!.isNotEmpty)
+                      if (settlement.memo != null &&
+                          settlement.memo!.isNotEmpty)
                         Text(
-                          request.memo!,
+                          settlement.memo!,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -179,7 +181,7 @@ class _RequestListView extends ConsumerWidget {
                   ),
                   onTap: () async {
                     final result = await context.push<bool>(
-                      '/requests/${request.id}',
+                      '/requests/${settlement.id}',
                     );
                     if (result == true) {
                       await onRefresh();

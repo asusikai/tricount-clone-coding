@@ -18,7 +18,12 @@ class ShareHelper {
     String? subject,
   }) async {
     try {
-      await Share.share(link, subject: subject);
+      await SharePlus.instance.share(
+        ShareParams(
+          text: link,
+          subject: subject,
+        ),
+      );
       return true;
     } catch (e) {
       debugPrint('링크 공유 실패: $e');
@@ -37,7 +42,12 @@ class ShareHelper {
     String? subject,
   }) async {
     try {
-      await Share.share(text, subject: subject);
+      await SharePlus.instance.share(
+        ShareParams(
+          text: text,
+          subject: subject,
+        ),
+      );
       return true;
     } catch (e) {
       debugPrint('텍스트 공유 실패: $e');
@@ -72,4 +82,3 @@ class ShareHelper {
     return success;
   }
 }
-

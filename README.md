@@ -130,4 +130,3 @@ settlements
 - 오프라인 지원 및 데이터 동기화 개선
 - 추가 결제 연동(Toss Payments, KakaoPay 등)
 - 사용자 피드백 기반 UI/UX 개선
-

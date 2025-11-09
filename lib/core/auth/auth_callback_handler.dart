@@ -71,8 +71,7 @@ class AuthCallbackHandler {
     try {
       // 모든 콜백을 처리하려고 시도 (보강된 URI 사용)
       debugPrint('세션 가져오기 시도: ${enhancedUri.toString()} ($timeInfo)');
-      final sessionResponse = await client.auth.getSessionFromUrl(enhancedUri);
-
+      await client.auth.getSessionFromUrl(enhancedUri);
       debugPrint('세션 가져오기 성공');
       // 로그인 성공 시 시간, 에러, 플로우 상태 초기화
       AuthService.clearSignInAttemptTime();
@@ -80,7 +79,7 @@ class AuthCallbackHandler {
       AuthService.clearFlowState(provider);
       await _processSuccessfulLogin(client);
       return;
-        } catch (error, stackTrace) {
+    } catch (error, stackTrace) {
       debugPrint('getSessionFromUrl 실패: $error');
       debugPrint('스택 트레이스: $stackTrace');
 
@@ -97,9 +96,7 @@ class AuthCallbackHandler {
             debugPrint('재시도 ${i + 1}번: ${delayMs}ms 대기 후 시도');
             await Future.delayed(Duration(milliseconds: delayMs));
 
-            final retryResponse = await client.auth.getSessionFromUrl(
-              enhancedUri,
-            );
+            await client.auth.getSessionFromUrl(enhancedUri);
             debugPrint('재시도 성공 (시도 ${i + 1}번)');
             AuthService.clearSignInAttemptTime();
             AuthService.clearAuthError();
@@ -107,7 +104,7 @@ class AuthCallbackHandler {
             await _processSuccessfulLogin(client);
             retrySuccess = true;
             break;
-                    } catch (retryError) {
+          } catch (retryError) {
             debugPrint('재시도 ${i + 1}번 실패: $retryError');
           }
         }
