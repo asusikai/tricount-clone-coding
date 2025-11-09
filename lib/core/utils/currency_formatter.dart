@@ -2,58 +2,103 @@ import 'package:intl/intl.dart';
 
 /// 통화 포맷팅 유틸리티
 ///
-/// 금액과 통화 코드를 포맷팅하는 함수들을 제공합니다.
+/// NumberFormat.currency를 감싸 로케일/소수점/심볼을 유연하게 제어합니다.
 class CurrencyFormatter {
   CurrencyFormatter._();
 
-  /// 간단한 통화 포맷 (소수점 없음)
-  ///
-  /// 예: 1000 KRW
-  ///
-  /// [amount] 금액
-  /// [currency] 통화 코드 (기본값: 'KRW')
-  static String formatSimple(double amount, {String currency = 'KRW'}) {
-    return '${amount.toStringAsFixed(0)} $currency';
+  /// 로케일/심볼을 고려한 통화 포맷
+  static String format(
+    double amount, {
+    String currency = 'KRW',
+    String? locale,
+    int? decimalDigits,
+    bool withSymbol = true,
+  }) {
+    final resolvedCurrency =
+        currency.isEmpty ? 'KRW' : currency.toUpperCase();
+    final resolvedLocale = _resolveLocale(locale);
+    final digits = decimalDigits ?? _defaultDecimalDigits(resolvedCurrency);
+    final symbol = withSymbol ? _symbolFor(resolvedCurrency) : '';
+
+    try {
+      final formatter = NumberFormat.currency(
+        locale: resolvedLocale,
+        name: resolvedCurrency,
+        symbol: symbol,
+        decimalDigits: digits,
+      );
+      final formatted = formatter.format(amount);
+      if (withSymbol && symbol.isNotEmpty) {
+        return formatted;
+      }
+      return '$formatted $resolvedCurrency'.trim();
+    } catch (_) {
+      final fallback = amount.toStringAsFixed(digits);
+      return withSymbol
+          ? '$fallback $resolvedCurrency'
+          : '$fallback $resolvedCurrency'.trim();
+    }
   }
 
-  /// 소수점 포함 통화 포맷
-  ///
-  /// 예: 1000.00 KRW
-  ///
-  /// [amount] 금액
-  /// [currency] 통화 코드 (기본값: 'KRW')
-  /// [decimalPlaces] 소수점 자릿수 (기본값: 2)
+  /// 간단한 정수 통화 포맷 (ex. "1,000 KRW")
+  static String formatSimple(double amount, {String currency = 'KRW'}) {
+    final digits = _defaultDecimalDigits(currency.toUpperCase());
+    return format(
+      amount,
+      currency: currency,
+      decimalDigits: digits == 0 ? 0 : digits,
+      withSymbol: false,
+    );
+  }
+
+  /// 소수점 고정 포맷
   static String formatWithDecimals(
     double amount, {
     String currency = 'KRW',
     int decimalPlaces = 2,
   }) {
-    return '${amount.toStringAsFixed(decimalPlaces)} $currency';
+    return format(
+      amount,
+      currency: currency,
+      decimalDigits: decimalPlaces,
+      withSymbol: false,
+    );
   }
 
-  /// NumberFormat을 사용한 지역화된 통화 포맷
-  ///
-  /// 예: ₩1,000 (KRW), $1,000.00 (USD)
-  ///
-  /// [amount] 금액
-  /// [currency] 통화 코드
-  /// [locale] 로케일 (기본값: 'ko_KR')
+  /// 로케일 기반 포맷 (기존 API와 호환)
   static String formatLocalized(
     double amount,
     String currency, {
     String locale = 'ko_KR',
   }) {
-    final formatter = NumberFormat.currency(
+    return format(
+      amount,
+      currency: currency,
       locale: locale,
-      symbol: _getCurrencySymbol(currency),
-      decimalDigits: _getDecimalDigits(currency),
     );
-    return formatter.format(amount);
   }
 
-  /// 통화 코드에 따른 통화 심볼 반환
-  static String _getCurrencySymbol(String currency) {
-    switch (currency.toUpperCase()) {
+  static String _resolveLocale(String? locale) {
+    if (locale == null || locale.isEmpty) {
+      final current = Intl.getCurrentLocale();
+      return current.isEmpty ? 'ko_KR' : current;
+    }
+    return Intl.canonicalizedLocale(locale);
+  }
+
+  static int _defaultDecimalDigits(String currency) {
+    switch (currency) {
+      case 'KRW':
+      case 'JPY':
+      case 'VND':
+        return 0;
+      default:
+        return 2;
+    }
+  }
+
+  static String _symbolFor(String currency) {
+    switch (currency) {
       case 'KRW':
         return '₩';
       case 'USD':
@@ -62,23 +107,12 @@ class CurrencyFormatter {
         return '€';
       case 'JPY':
         return '¥';
-      case 'CNY':
-        return '¥';
       case 'GBP':
         return '£';
+      case 'CNY':
+        return '¥';
       default:
         return currency;
-    }
-  }
-
-  /// 통화 코드에 따른 소수점 자릿수 반환
-  static int _getDecimalDigits(String currency) {
-    switch (currency.toUpperCase()) {
-      case 'JPY':
-      case 'KRW':
-        return 0; // 원화와 엔화는 소수점 없음
-      default:
-        return 2;
     }
   }
 }

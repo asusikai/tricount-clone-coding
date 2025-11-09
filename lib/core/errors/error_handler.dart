@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 import 'package:gotrue/gotrue.dart' as gotrue;
 
 import 'app_exception.dart';
+import 'result.dart';
 
 /// 통일된 에러 처리 유틸리티
 /// 
@@ -200,9 +201,9 @@ class ErrorHandler {
   /// [defaultMessage] 기본 메시지
   static AppException handleAndLog(
     Object error, {
-    StackTrace? stackTrace,
-    String? context,
-    String? defaultMessage,
+      StackTrace? stackTrace,
+      String? context,
+      String? defaultMessage,
   }) {
     final appException = toAppException(
       error,
@@ -223,5 +224,45 @@ class ErrorHandler {
 
     return appException;
   }
-}
 
+  /// 동기 실행 결과를 Result로 감싼다.
+  static Result<T> guard<T>(
+    T Function() runner, {
+    String? context,
+    String? defaultMessage,
+  }) {
+    try {
+      return Success<T>(runner());
+    } catch (error, stackTrace) {
+      return Failure(
+        handleAndLog(
+          error,
+          stackTrace: stackTrace,
+          context: context,
+          defaultMessage: defaultMessage,
+        ),
+      );
+    }
+  }
+
+  /// 비동기 실행 결과를 ResultFuture로 감싼다.
+  static Future<Result<T>> guardAsync<T>(
+    Future<T> Function() runner, {
+    String? context,
+    String? defaultMessage,
+  }) async {
+    try {
+      final value = await runner();
+      return Success<T>(value);
+    } catch (error, stackTrace) {
+      return Failure(
+        handleAndLog(
+          error,
+          stackTrace: stackTrace,
+          context: context,
+          defaultMessage: defaultMessage,
+        ),
+      );
+    }
+  }
+}

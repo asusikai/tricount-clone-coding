@@ -2,7 +2,6 @@ import 'package:go_router/go_router.dart';
 
 import 'core/constants/constants.dart';
 import 'features/auth/auth_page.dart';
-import 'features/group/group_create_page.dart';
 import 'features/group/group_page.dart';
 import 'features/home/home_page.dart';
 import 'features/requests/request_page.dart';
@@ -21,7 +20,6 @@ final appRouter = GoRouter(
         initialTab: HomeTabX.fromName(state.uri.queryParameters['tab']),
       ),
     ),
-    GoRoute(path: RouteConstants.groupCreate, builder: (_, _) => const GroupCreatePage()),
     GoRoute(
       path: '/groups/:id',
       builder: (_, state) {

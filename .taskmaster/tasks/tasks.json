@@ -161,7 +161,7 @@
         "testStrategy": "- JSON 직렬화/역직렬화 라운드트립 테스트.\n- CRUD 메서드 시그니처/에러 분기 단위 테스트(HTTP/Supa 모킹).",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -169,7 +169,7 @@
             "description": "모델 코드 생성을 위해 freezed, json_serializable, build_runner를 추가하고 기본 설정을 정리합니다.",
             "dependencies": [],
             "details": "- `pubspec.yaml`에 `freezed`, `json_annotation`, `build_runner`, `freezed_annotation`, `json_serializable` 추가\n- `analysis_options.yaml`에 `implicit-casts: false` 등 엄격 모드 권장 설정\n- 필요 시 `build.yaml`에서 `json_serializable` 옵션(필드 이름 유지, any_map 등) 정리\n- 스크립트: `flutter pub run build_runner build --delete-conflicting-outputs`\n- CI를 고려해 로컬/CI 모두 동일 스크립트를 사용하도록 명명 규칙 통일",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "의존성 설치 확인 및 코드 생성 명령이 정상 종료되는지 수동 점검(로그 확인)."
           },
           {
@@ -180,7 +180,7 @@
               1
             ],
             "details": "- 경로: `lib/domain/models/`\n- 각 테이블 DTO 정의: users, groups(base_currency 포함), members, expenses(participants 필드는 후속 컨버터 연결 예정), settlements, exchange_rates\n- 컬럼 스네이크→카멜 매핑: 예) `invite_code`→`inviteCode`, `base_currency`→`baseCurrency`, `created_at`→`createdAt`\n- `@JsonKey(name: '...')`로 DB 컬럼명 보존, `fromJson/toJson` 생성\n- `id` 타입과 `timestamp` 필드 타입(예: `DateTime`) 명확화",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "각 DTO에 대해 샘플 JSON을 만들어 fromJson→toJson 라운드트립 무결성 확인 계획 문서화."
           },
           {
@@ -191,7 +191,7 @@
               2
             ],
             "details": "- 경로: `lib/domain/models/participants.dart`, `lib/domain/models/converters/participants_converter.dart`\n- 예시 스키마: `{ user_id: string, ratio: double, amount: double? }` 리스트\n- `@JsonSerializable` 또는 `@freezed`로 `ParticipantShare` 정의\n- `JsonConverter<List<ParticipantShare>, dynamic>` 구현해 `expenses` DTO 필드에 적용\n- 유효성(비율 합=1.0±ε, userId 중복 방지) 검사 헬퍼 포함",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "유효/무효 샘플 JSON에 대한 파싱 실패/성공 케이스 설계 및 라운드트립 검증 계획 수립."
           },
           {
@@ -202,7 +202,7 @@
               1
             ],
             "details": "- 경로: `lib/core/errors/app_exception.dart`, `lib/core/errors/result.dart`\n- 예외 카테고리: validation, notFound, unauthorized, forbidden, conflict, network, unknown 등\n- Supabase/Postgrest 에러를 AppException으로 변환하는 mapper 구현\n- `Result<T>`: `success(value)` / `failure(AppException)` 팩토리 제공",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "에러 매핑 표를 문서화하고, 대표 시나리오(404, RLS, unique 위반)별 변환 결과를 단위 테스트 계획으로 정의."
           },
           {
@@ -216,7 +216,7 @@
               4
             ],
             "details": "- 경로: `lib/data/repositories/`\n- 리포지토리: UsersRepository, GroupsRepository, MembersRepository, ExpensesRepository, SettlementsRepository, ExchangeRatesRepository\n- 컬럼 매핑 규약 적용(`@JsonKey`) + repo에서 select/insert/update/delete 표준화\n- 예: `GroupsRepository.byUser(String uid)`, `create({name, baseCurrency})` 등\n- 모든 메서드는 `Result<T>`로 반환, 예외는 AppException으로 변환\n- 페이징/정렬 파라미터 최소 지원, `participants` 필드 컨버터 연결",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "각 리포지토리의 CRUD 시그니처와 예외 분기를 모킹으로 단위 테스트하는 계획 수립(실행은 생략)."
           },
           {
@@ -227,7 +227,7 @@
               5
             ],
             "details": "- 대상 예: Group 목록/생성, Expense 생성/조회, Settlement 조회/생성\n- 호출부를 `Result` 기반으로 리팩터링하고 실패 시 UX 표준 에러 핸들링 경로 연결\n- 변경 범위와 임시 어댑터 정의, TODO 태그로 추후 정리 포인트 표시\n- 성능 영향 최소화를 위해 라우트별 점진 적용",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "화면별(그룹/지출/정산) 주요 흐름에서 성공/실패 경로를 수동 시나리오로 점검하는 체크리스트 작성."
           },
           {
@@ -240,7 +240,7 @@
               6
             ],
             "details": "- 스크립트: `flutter pub run build_runner build|watch --delete-conflicting-outputs` 통일\n- `.gitignore`에 `*.g.dart`, `*.freezed.dart`, `.dart_tool/` 등 최종 반영\n- `AGENTS.md`/`README`에 모델/리포지토리 사용법과 코드생성 절차 문서화\n- 브랜치 전략에 따라 `feature/model-repo-layer` 생성 후 PR 템플릿(한글)로 제출",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "문서의 재현 절차에 따라 신규 환경에서 코드 생성이 문제없이 동작하는지 체크리스트 기반으로 확인 계획 수립."
           }
         ],
@@ -256,7 +256,7 @@
         "testStrategy": "- 생성 폼 검증(이름/통화 필수) 위젯 테스트.\n- 생성 후 목록 반영/스낵바 확인.\n- 빈 상태/에러 상태 화면 처리 확인.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -264,7 +264,7 @@
             "description": "Groups 탭에 그룹 목록 스켈레톤을 만들고 byUser 데이터와 연결합니다. 풀투리프레시/재시도와 기본 캐시 무효화를 포함합니다.",
             "dependencies": [],
             "details": "- 목록 페이지/위젯 스켈레톤 구성(타이틀, 리스트, 빈/에러 영역 슬롯)\n- ViewModel(Async 상태)로 GroupRepository.byUser(uid) 호출, 최초 로드/당겨서 새로고침/수동 재시도 지원\n- 기본 캐시 정책: 포그라운드 재진입 시 시간기반 무효화(예: 60초) 또는 명시적 invalidate 훅 제공\n- 항목 탭 시 GroupPage로 라우팅, invite_code 등 핵심 필드 전달",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "리포지토리 모킹으로 성공/빈/에러 시나리오 위젯 테스트, 풀투리프레시 트리거 시 재호출 확인"
           },
           {
@@ -275,7 +275,7 @@
               1
             ],
             "details": "- 모달 다이얼로그에 TextField(name), 통화 선택(간단 드롭다운) 및 확인/취소 버튼\n- GroupRepository.create(name, baseCurrency) 호출 전 로컬 낙관적 항목 추가(id 임시), 성공 시 서버 값으로 교체, 실패 시 롤백\n- 성공/실패 스낵바, 중복 제출 방지 로딩 상태, 닫힘 후 포커스 해제\n- 생성 후 목록 스크롤 상단 유지 및 새로고침 invalidate 호출",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "폼 검증(필수값) 위젯 테스트, create 성공 시 목록 반영/스낵바 노출, 실패 시 롤백/에러 스낵바 확인"
           },
           {
@@ -288,7 +288,7 @@
               5
             ],
             "details": "- 헤더: 그룹 기준통화 표시, 총지출/내지분 요약 카드, 새로고침 버튼\n- 탭: 날짜별, 사용자별 전환(각각 간단 섹션 리스트), 기본 정렬 및 필터 상태 유지\n- 지출 아이템: 설명, 금액(통화 포맷 적용), 날짜, 부담자 표시\n- 상태 표시: 로딩/빈/에러 시 공통 컴포넌트 사용, 라우팅 파라미터로 groupId 수신",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "더미 데이터 주입으로 합계/필터 결과 검증, 탭 전환 시 상태 유지, 통화 포맷 적용 여부 확인"
           },
           {
@@ -297,7 +297,7 @@
             "description": "로딩 스피너, 빈 상태, 에러+재시도 버튼을 공통 위젯으로 만들고 목록/상세에 적용합니다.",
             "dependencies": [],
             "details": "- Loading, Empty(message+action?), Error(message+retry) 기본 위젯 정의\n- 다크모드/접근성 대비 색상과 최소 터치 타겟 고려\n- 콜백 주입형 API로 재사용성 확보, 스낵바/토스트와 함께 사용 가능하도록 설계\n- GroupList/GroupPage에서 기존 임시 표시를 공통 컴포넌트로 교체",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "각 위젯 렌더 스냅샷, retry 콜백 호출 검증, 긴 텍스트/다국어 레이아웃 깨짐 수동 점검"
           },
           {
@@ -306,7 +306,7 @@
             "description": "NumberFormat.currency를 래핑한 통화 포맷 유틸을 추가하고 그룹 목록/상세 요약과 아이템 금액 표시에 적용합니다.",
             "dependencies": [],
             "details": "- MoneyFormatter 유틸: locale, currencyCode 입력받아 안전한 포맷 반환(소수점 처리/마이너스/0원 케이스)\n- 기본 locale 결정 전략(시스템/그룹 기준통화 우선 적용)과 폴백 정의\n- GroupList 항목 금액, GroupPage 헤더 합계/아이템에 적용\n- 확장 가능하도록 소수 자릿수/기호 커스터마이즈 옵션 제공",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "KRW/USD/EUR 포맷 단위 테스트(부호/자릿수/라운딩), null/빈 통화코드 폴백 확인, UI 스냅샷으로 적용 여부 점검"
           }
         ],

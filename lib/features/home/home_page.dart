@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/constants.dart';
+import '../../core/utils/utils.dart';
+import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
+import '../group/group_create_dialog.dart';
 import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';
@@ -102,17 +105,24 @@ class _HomePageState extends ConsumerState<HomePage> {
     switch (_currentTab) {
       case HomeTab.groups:
         return FloatingActionButton(
-          onPressed: () {
-            context.go(RouteConstants.groupCreate);
+          onPressed: () async {
+            final created = await showGroupCreateDialog(context);
+            if (created == true && mounted) {
+              SnackBarHelper.showSuccess(context, '그룹이 생성되었습니다.');
+            }
           },
           child: const Icon(Icons.add),
         );
       case HomeTab.requests:
         return FloatingActionButton(
           onPressed: () async {
-            final shouldRefresh = await context.push<bool>('/requests/register');
+            final shouldRefresh =
+                await context.push<bool>(RouteConstants.requestRegister);
             if (shouldRefresh == true && mounted) {
-              ref.invalidate(requestListProvider);
+              ref.invalidate(requestListProvider(null));
+              for (final status in SettlementStatus.values) {
+                ref.invalidate(requestListProvider(status));
+              }
             }
           },
           child: const Icon(Icons.note_add),

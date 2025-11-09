@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/errors/errors.dart';
 import '../../core/utils/utils.dart';
+import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -22,18 +24,26 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _memoController = TextEditingController();
 
-  List<Map<String, dynamic>> _groups = <Map<String, dynamic>>[];
-  List<Map<String, dynamic>> _members = <Map<String, dynamic>>[];
+  List<GroupDto> _groups = const [];
+  List<UserDto> _members = const [];
   String? _selectedGroupId;
   String? _selectedUserId;
   bool _isLoading = true;
   bool _isLoadingMembers = false;
   bool _isSubmitting = false;
 
-  Map<String, dynamic>? get _selectedGroup => _groups.firstWhere(
-    (group) => group['id'] == _selectedGroupId,
-    orElse: () => <String, dynamic>{},
-  );
+  GroupDto? get _selectedGroup {
+    if (_selectedGroupId == null) {
+      return null;
+    }
+    try {
+      return _groups.firstWhere(
+        (group) => group.id == _selectedGroupId,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -47,7 +57,21 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
     });
 
     try {
-      final groups = await ref.read(groupServiceProvider).getUserGroups();
+      final client = ref.read(supabaseClientProvider);
+      final userId = client.auth.currentUser?.id;
+      if (userId == null) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _groups = const [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final repository = ref.read(groupsRepositoryProvider);
+      final groups = await repository.fetchByUser(userId).unwrap();
       if (!mounted) {
         return;
       }
@@ -73,19 +97,49 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
     });
 
     try {
-      final members = await ref
-          .read(groupServiceProvider)
-          .getGroupMembers(groupId);
+      final membersRepository = ref.read(membersRepositoryProvider);
+      final usersRepository = ref.read(usersRepositoryProvider);
+      final client = ref.read(supabaseClientProvider);
+      final currentUserId = client.auth.currentUser?.id;
+
+      final members =
+          await membersRepository.fetchByGroup(groupId).unwrap();
+      final filteredMembers = members
+          .where((member) => member.userId != currentUserId)
+          .toList(growable: false);
+
+      if (filteredMembers.isEmpty) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _members = const [];
+          _selectedUserId = null;
+          _isLoadingMembers = false;
+        });
+        return;
+      }
+
+      final users = await usersRepository
+          .fetchByIds(
+            filteredMembers.map((member) => member.userId).toList(),
+          )
+          .unwrap();
+
+      final lookup = {
+        for (final user in users) user.id: user,
+      };
+      final orderedUsers = filteredMembers
+          .map((member) => lookup[member.userId])
+          .whereType<UserDto>()
+          .toList(growable: false);
+
       if (!mounted) {
         return;
       }
 
-      final currentUser = Supabase.instance.client.auth.currentUser;
-
       setState(() {
-        _members = members
-            .where((member) => member['id'] != currentUser?.id)
-            .toList(growable: false);
+        _members = orderedUsers;
         _selectedUserId = null;
         _isLoadingMembers = false;
       });
@@ -131,27 +185,36 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
 
     try {
       final group = _selectedGroup;
-      final currency = (group?['base_currency'] as String?) ?? 'KRW';
+      final currency = group?.baseCurrency ?? 'KRW';
 
-      await ref
-          .read(requestServiceProvider)
-          .createRequest(
-            groupId: groupId,
-            fromUserId: user.id,
-            toUserId: toUserId,
-            amount: amount,
-            currency: currency,
-            memo: _memoController.text.trim().isEmpty
-                ? null
-                : _memoController.text.trim(),
-          );
+      final repository = ref.read(settlementsRepositoryProvider);
+      final result = await repository.create(
+        groupId: groupId,
+        fromUserId: user.id,
+        toUserId: toUserId,
+        amount: amount,
+        currency: currency,
+        memo: _memoController.text.trim().isEmpty
+            ? null
+            : _memoController.text.trim(),
+      );
 
       if (!mounted) {
         return;
       }
 
-      SnackBarHelper.showSuccess(context, '송금 요청이 등록되었습니다.');
-      Navigator.of(context).pop(true);
+      result.fold(
+        onSuccess: (_) {
+          SnackBarHelper.showSuccess(context, '송금 요청이 등록되었습니다.');
+          Navigator.of(context).pop(true);
+        },
+        onFailure: (error) {
+          SnackBarHelper.showError(
+            context,
+            '송금 요청 등록 실패: ${error.message}',
+          );
+        },
+      );
     } catch (error) {
       debugPrint('요청 등록 실패: $error');
       if (!mounted) {
@@ -203,9 +266,11 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
                         items: _groups
                             .map(
                               (group) => DropdownMenuItem<String>(
-                                value: group['id'] as String,
+                                value: group.id,
                                 child: Text(
-                                  group['name'] as String? ?? '이름 없음',
+                                  group.name.isEmpty
+                                      ? '이름 없음'
+                                      : group.name,
                                 ),
                               ),
                             )
@@ -228,12 +293,13 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
                         items: _members
                             .map(
                               (member) => DropdownMenuItem<String>(
-                                value: member['id'] as String,
+                                value: member.id,
                                 child: Text(
-                                  (member['nickname'] as String?) ??
-                                      (member['name'] as String?) ??
-                                      (member['email'] as String?) ??
-                                      '이름 없음',
+                                  member.nickname?.trim().isNotEmpty == true
+                                      ? member.nickname!.trim()
+                                      : member.name?.trim().isNotEmpty == true
+                                          ? member.name!.trim()
+                                          : (member.email ?? '이름 없음'),
                                 ),
                               ),
                             )

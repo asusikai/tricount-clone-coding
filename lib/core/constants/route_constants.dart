@@ -10,7 +10,6 @@ class RouteConstants {
   static const String home = '/home';
 
   // 그룹 관련
-  static const String groupCreate = '/group/create';
   static String groupDetail(String id) => '/groups/${Uri.encodeComponent(id)}';
 
   // 요청 관련
@@ -22,4 +21,3 @@ class RouteConstants {
   static const String authGoogle = '/auth/google';
   static const String authApple = '/auth/apple';
 }
-

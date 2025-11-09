@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/constants.dart';
 import '../../core/utils/utils.dart';
+import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
 
@@ -27,10 +28,19 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        ref.read(groupListControllerProvider.notifier).refreshIfStale(),
+      );
+    });
+  }
+
   Future<void> _refreshGroups() async {
     try {
-      ref.invalidate(userGroupsProvider);
-      await ref.read(userGroupsProvider.future);
+      await ref.read(groupListControllerProvider.notifier).refresh();
     } catch (error, stackTrace) {
       debugPrint('그룹 새로고침 실패: $error\n$stackTrace');
       rethrow;
@@ -50,7 +60,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
       );
     }
 
-    final asyncGroups = ref.watch(userGroupsProvider);
+    final asyncGroups = ref.watch(groupListControllerProvider);
 
     return asyncGroups.when(
       data: (groups) => RefreshIndicator(
@@ -89,19 +99,17 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
     );
   }
 
-  Widget _buildGroupList(List<Map<String, dynamic>> groups) {
+  Widget _buildGroupList(List<GroupDto> groups) {
     return ListView.builder(
       key: _listKey,
       padding: const EdgeInsets.all(8),
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
-        final name = (group['name'] as String?)?.trim() ?? '';
-        final avatarText = name.isEmpty
-            ? 'G'
-            : name.substring(0, 1).toUpperCase();
-        final baseCurrency = group['base_currency'] as String? ?? 'KRW';
-        final groupId = (group['id'] ?? '').toString();
+        final name = group.name.trim();
+        final avatarText = name.isEmpty ? 'G' : name.substring(0, 1).toUpperCase();
+        final baseCurrency = group.baseCurrency;
+        final groupId = group.id;
         final isSharing = _sharingGroupId == groupId;
 
         return Card(
@@ -145,8 +153,8 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
       _sharingGroupId = groupId;
     });
     try {
-      final groupService = ref.read(groupServiceProvider);
-      final inviteLink = await groupService.getInviteLink(groupId);
+      final repository = ref.read(groupsRepositoryProvider);
+      final inviteLink = await repository.getInviteLink(groupId).unwrap();
       final shareSubject = groupName.isEmpty
           ? 'splitBills 그룹 초대'
           : 'splitBills: $groupName 초대';
