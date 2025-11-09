@@ -20,10 +20,14 @@ class GroupListController extends AsyncNotifier<List<GroupDto>> {
   }
 
   Future<List<GroupDto>> _load({required bool force}) async {
-    final cached = state.valueOrNull;
+    final cached = state.maybeWhen<List<GroupDto>?>(
+      data: (value) => value,
+      orElse: () => null,
+    );
     final userId = ref.read(supabaseClientProvider).auth.currentUser?.id;
     if (userId == null) {
-      throw const AuthException('로그인이 필요합니다.');
+      _lastFetched = DateTime.now();
+      return const <GroupDto>[];
     }
 
     if (!force &&

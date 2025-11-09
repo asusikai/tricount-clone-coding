@@ -19,16 +19,6 @@ Tricount와 유사한 그룹 비용 정산 앱의 MVP를 Flutter로 구현합니
       EOF
   ```
 
-## 코드 생성 파이프라인
-- `lib/domain/models` 이하 DTO는 `freezed`/`json_serializable` 기반으로 생성됩니다.
-- 생성된 `*.freezed.dart`, `*.g.dart` 파일은 Git에 커밋하지 않고 로컬에서만 관리합니다.
-- 변경 사항 반영 시 아래 명령 중 하나를 실행하세요.
-  ```sh
-  flutter pub run build_runner build --delete-conflicting-outputs
-  # 또는 개발 중 상시 감시
-  flutter pub run build_runner watch --delete-conflicting-outputs
-  ```
-
 ## 목표
 - FlutterFlow 프로토타입을 Export 후 리팩터링하여 프로덕션 레벨 Flutter 앱 개발
 - Supabase를 이용해 Auth, DB, 실시간 동기화 환경 구성

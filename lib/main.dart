@@ -420,20 +420,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  /// 사용자 삭제 처리
-  ///
-  /// 앱 상태를 초기화하고 인증 페이지로 이동합니다.
-  void _handleUserDeleted(String currentLocation) {
-    // 앱 상태 초기화
-    AuthStateManager.clearStateOnUserDeleted(null);
-
-    // 인증 페이지로 이동
-    if (currentLocation != RouteConstants.splash &&
-        currentLocation != RouteConstants.auth) {
-      _safeNavigate(RouteConstants.auth);
-    }
-  }
-
   /// 세션 만료 메시지 표시
   void _showSessionExpiredMessage() {
     if (!mounted) return;
@@ -463,7 +449,15 @@ class _MyAppState extends State<MyApp> {
         final currentLocation =
             appRouter.routerDelegate.currentConfiguration.uri.path;
 
-        switch (state.event) {
+        final isUserDeleted = state.event.name == 'userDeleted';
+        if (isUserDeleted) {
+          AuthStateManager.clearStateOnUserDeleted(null);
+        }
+
+        final normalizedEvent =
+            isUserDeleted ? AuthChangeEvent.signedOut : state.event;
+
+        switch (normalizedEvent) {
           case AuthChangeEvent.initialSession:
             // 초기 세션 로드 시는 SplashPage에서 처리하므로 무시
             break;
@@ -477,10 +471,6 @@ class _MyAppState extends State<MyApp> {
             // 로그아웃 시 앱 상태 초기화 및 인증 페이지로 이동
             _handleSignOut(currentLocation);
             break;
-          case AuthChangeEvent.userDeleted:
-            // 사용자 삭제 시 앱 상태 초기화 및 인증 페이지로 이동
-            _handleUserDeleted(currentLocation);
-            break;
           case AuthChangeEvent.tokenRefreshed:
             // 토큰 갱신 시 라우터만 리프레시 (현재 위치 유지)
             debugPrint('토큰 갱신 완료');
@@ -491,6 +481,10 @@ class _MyAppState extends State<MyApp> {
           case AuthChangeEvent.mfaChallengeVerified:
             // 기타 이벤트는 라우터만 리프레시
             appRouter.refresh();
+            break;
+          case AuthChangeEvent.userDeleted:
+            // 이미 normalizedEvent가 userDeleted 인 경우 (정상 경로)
+            _handleSignOut(currentLocation);
             break;
         }
       },

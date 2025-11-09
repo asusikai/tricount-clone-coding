@@ -1,17 +1,7 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'settlement.freezed.dart';
-part 'settlement.g.dart';
-
-@JsonEnum(fieldRename: FieldRename.snake)
 enum SettlementStatus {
-  @JsonValue('pending')
   pending,
-  @JsonValue('paid')
   paid,
-  @JsonValue('rejected')
   rejected,
-  @JsonValue('rolled_back')
   rolledBack,
 }
 
@@ -29,24 +19,94 @@ extension SettlementStatusX on SettlementStatus {
     }
   }
 
-  String get dbValue => _$SettlementStatusEnumMap[this]!;
+  String get dbValue {
+    switch (this) {
+      case SettlementStatus.pending:
+        return 'pending';
+      case SettlementStatus.paid:
+        return 'paid';
+      case SettlementStatus.rejected:
+        return 'rejected';
+      case SettlementStatus.rolledBack:
+        return 'rolled_back';
+    }
+  }
+
+  static SettlementStatus fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'paid':
+        return SettlementStatus.paid;
+      case 'rejected':
+        return SettlementStatus.rejected;
+      case 'rolled_back':
+        return SettlementStatus.rolledBack;
+      default:
+        return SettlementStatus.pending;
+    }
+  }
 }
 
-@freezed
-class SettlementDto with _$SettlementDto {
-  const factory SettlementDto({
-    required String id,
-    @JsonKey(name: 'group_id') required String groupId,
-    @JsonKey(name: 'from_user') required String fromUserId,
-    @JsonKey(name: 'to_user') required String toUserId,
-    required double amount,
-    required String currency,
-    required SettlementStatus status,
-    String? memo,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
-  }) = _SettlementDto;
+class SettlementDto {
+  const SettlementDto({
+    required this.id,
+    required this.groupId,
+    required this.fromUserId,
+    required this.toUserId,
+    required this.amount,
+    required this.currency,
+    required this.status,
+    this.memo,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-  factory SettlementDto.fromJson(Map<String, dynamic> json) =>
-      _$SettlementDtoFromJson(json);
+  final String id;
+  final String groupId;
+  final String fromUserId;
+  final String toUserId;
+  final double amount;
+  final String currency;
+  final SettlementStatus status;
+  final String? memo;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  factory SettlementDto.fromJson(Map<String, dynamic> json) {
+    return SettlementDto(
+      id: json['id'] as String,
+      groupId: json['group_id'] as String? ?? '',
+      fromUserId: json['from_user'] as String? ?? '',
+      toUserId: json['to_user'] as String? ?? '',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0,
+      currency: json['currency'] as String? ?? 'KRW',
+      status:
+          SettlementStatusX.fromString(json['status'] as String? ?? 'pending'),
+      memo: json['memo'] as String?,
+      createdAt: _parseDate(json['created_at']),
+      updatedAt: _parseDate(json['updated_at']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'group_id': groupId,
+      'from_user': fromUserId,
+      'to_user': toUserId,
+      'amount': amount,
+      'currency': currency,
+      'status': status.dbValue,
+      'memo': memo,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+DateTime? _parseDate(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+  return null;
 }

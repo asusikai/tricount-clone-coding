@@ -107,7 +107,10 @@ class _HomePageState extends ConsumerState<HomePage> {
         return FloatingActionButton(
           onPressed: () async {
             final created = await showGroupCreateDialog(context);
-            if (created == true && mounted) {
+            if (!mounted) {
+              return;
+            }
+            if (created == true) {
               SnackBarHelper.showSuccess(context, '그룹이 생성되었습니다.');
             }
           },
@@ -118,7 +121,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           onPressed: () async {
             final shouldRefresh =
                 await context.push<bool>(RouteConstants.requestRegister);
-            if (shouldRefresh == true && mounted) {
+            if (!mounted) {
+              return;
+            }
+            if (shouldRefresh == true) {
               ref.invalidate(requestListProvider(null));
               for (final status in SettlementStatus.values) {
                 ref.invalidate(requestListProvider(status));
@@ -181,8 +187,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        final shouldPop = await _onWillPop();
+        if (shouldPop && mounted) {
+          Navigator.of(context).maybePop(result);
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(_tabTitles[_currentTab]!),

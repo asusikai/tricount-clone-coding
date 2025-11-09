@@ -1,20 +1,51 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class GroupDto {
+  const GroupDto({
+    required this.id,
+    required this.name,
+    required this.ownerId,
+    required this.inviteCode,
+    required this.baseCurrency,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-part 'group.freezed.dart';
-part 'group.g.dart';
+  final String id;
+  final String name;
+  final String ownerId;
+  final String inviteCode;
+  final String baseCurrency;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-@freezed
-class GroupDto with _$GroupDto {
-  const factory GroupDto({
-    required String id,
-    required String name,
-    @JsonKey(name: 'owner_id') required String ownerId,
-    @JsonKey(name: 'invite_code') required String inviteCode,
-    @JsonKey(name: 'base_currency') required String baseCurrency,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
-  }) = _GroupDto;
+  factory GroupDto.fromJson(Map<String, dynamic> json) {
+    return GroupDto(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      ownerId: json['owner_id'] as String? ?? '',
+      inviteCode: json['invite_code'] as String? ?? '',
+      baseCurrency: json['base_currency'] as String? ?? 'KRW',
+      createdAt: _parseDateTime(json['created_at']),
+      updatedAt: _parseDateTime(json['updated_at']),
+    );
+  }
 
-  factory GroupDto.fromJson(Map<String, dynamic> json) =>
-      _$GroupDtoFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'owner_id': ownerId,
+      'invite_code': inviteCode,
+      'base_currency': baseCurrency,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+  return null;
 }

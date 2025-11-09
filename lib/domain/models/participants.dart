@@ -1,16 +1,27 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class ParticipantShare {
+  const ParticipantShare({
+    required this.userId,
+    required this.ratio,
+    this.amount,
+  });
 
-part 'participants.freezed.dart';
-part 'participants.g.dart';
+  final String userId;
+  final double ratio;
+  final double? amount;
 
-@freezed
-class ParticipantShare with _$ParticipantShare {
-  const factory ParticipantShare({
-    @JsonKey(name: 'user_id') required String userId,
-    required double ratio,
-    double? amount,
-  }) = _ParticipantShare;
+  factory ParticipantShare.fromJson(Map<String, dynamic> json) {
+    return ParticipantShare(
+      userId: json['user_id'] as String? ?? '',
+      ratio: (json['ratio'] as num?)?.toDouble() ?? 0,
+      amount: (json['amount'] as num?)?.toDouble(),
+    );
+  }
 
-  factory ParticipantShare.fromJson(Map<String, dynamic> json) =>
-      _$ParticipantShareFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'ratio': ratio,
+      'amount': amount,
+    }..removeWhere((key, value) => value == null);
+  }
 }

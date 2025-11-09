@@ -206,7 +206,7 @@ class SupabaseGroupsRepository implements GroupsRepository {
       }
     }
     if (response is Map) {
-      final map = Map<String, dynamic>.from(response as Map);
+      final map = Map<String, dynamic>.from(response);
       final groupId = map['group_id'] ?? map['id'];
       if (groupId is String && groupId.isNotEmpty) {
         return groupId;

@@ -89,7 +89,9 @@ class _RequestPageState extends ConsumerState<RequestPage> {
                   ? otherUser!.name!.trim()
                   : (otherUser?.email ?? '알 수 없음');
           final createdAt = settlement.createdAt;
-          final formattedDate = DateFormatter.formatDateTime(createdAt);
+          final formattedDate = createdAt == null
+              ? '-'
+              : DateFormatter.formatDateTime(createdAt);
 
           final actionButtons = <Widget>[];
 

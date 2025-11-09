@@ -29,6 +29,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session == null) {
+      if (!mounted) return;
       context.go(RouteConstants.auth);
     } else {
       try {
@@ -36,6 +37,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       } catch (error) {
         debugPrint('사용자 프로필 동기화 실패: $error');
       }
+      if (!mounted) return;
       context.go(RouteConstants.home);
     }
   }

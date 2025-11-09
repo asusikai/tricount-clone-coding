@@ -13,7 +13,7 @@ typedef SettlementDetail = ({
 });
 
 Future<List<SettlementDetail>> _composeSettlementDetails(
-  WidgetRef ref,
+  Ref ref,
   List<SettlementDto> settlements,
 ) async {
   if (settlements.isEmpty) {

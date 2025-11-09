@@ -120,7 +120,7 @@ class AuthRepositoryImpl implements AuthRepository {
       _lastSignInAttemptTime = null;
       clearFlowState(provider.name);
       // AppError로 매핑하여 로깅
-      final appError = ErrorMapper.mapAndLog(
+      ErrorMapper.mapAndLog(
         error,
         stackTrace: stackTrace,
         context: 'OAuth 로그인 실패 (${provider.name})',

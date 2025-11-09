@@ -127,7 +127,7 @@ class _RequestListView extends ConsumerWidget {
           : ListView.separated(
               key: _listKey,
               itemCount: requests.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (context, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final detail = requests[index];
                 final settlement = detail.settlement;

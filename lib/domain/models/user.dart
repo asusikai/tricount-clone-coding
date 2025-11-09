@@ -1,21 +1,55 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class UserDto {
+  const UserDto({
+    required this.id,
+    required this.email,
+    this.name,
+    this.nickname,
+    this.provider,
+    this.avatarUrl,
+    this.createdAt,
+    this.updatedAt,
+  });
 
-part 'user.freezed.dart';
-part 'user.g.dart';
+  final String id;
+  final String email;
+  final String? name;
+  final String? nickname;
+  final String? provider;
+  final String? avatarUrl;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-@freezed
-class UserDto with _$UserDto {
-  const factory UserDto({
-    required String id,
-    required String email,
-    String? name,
-    String? nickname,
-    String? provider,
-    @JsonKey(name: 'avatar_url') String? avatarUrl,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
-  }) = _UserDto;
+  factory UserDto.fromJson(Map<String, dynamic> json) {
+    return UserDto(
+      id: json['id'] as String,
+      email: json['email'] as String? ?? '',
+      name: json['name'] as String?,
+      nickname: json['nickname'] as String?,
+      provider: json['provider'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+      createdAt: _parseDateTime(json['created_at']),
+      updatedAt: _parseDateTime(json['updated_at']),
+    );
+  }
 
-  factory UserDto.fromJson(Map<String, dynamic> json) =>
-      _$UserDtoFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      'name': name,
+      'nickname': nickname,
+      'provider': provider,
+      'avatar_url': avatarUrl,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+DateTime? _parseDateTime(dynamic value) {
+  if (value is DateTime) return value;
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+  return null;
 }

@@ -294,13 +294,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
                             .map(
                               (member) => DropdownMenuItem<String>(
                                 value: member.id,
-                                child: Text(
-                                  member.nickname?.trim().isNotEmpty == true
-                                      ? member.nickname!.trim()
-                                      : member.name?.trim().isNotEmpty == true
-                                          ? member.name!.trim()
-                                          : (member.email ?? '이름 없음'),
-                                ),
+                                child: Text(_formatMemberName(member)),
                               ),
                             )
                             .toList(),
@@ -328,8 +322,7 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
                         decoration: InputDecoration(
                           labelText: '금액',
                           suffixText:
-                              (_selectedGroup?['base_currency'] as String?) ??
-                              'KRW',
+                              _selectedGroup?.baseCurrency ?? 'KRW',
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
@@ -369,4 +362,20 @@ class _RequestRegisterPageState extends ConsumerState<RequestRegisterPage> {
             ),
     );
   }
+}
+
+String _formatMemberName(UserDto member) {
+  final nickname = member.nickname?.trim();
+  if (nickname != null && nickname.isNotEmpty) {
+    return nickname;
+  }
+  final name = member.name?.trim();
+  if (name != null && name.isNotEmpty) {
+    return name;
+  }
+  final email = member.email?.trim();
+  if (email != null && email.isNotEmpty) {
+    return email;
+  }
+  return '이름 없음';
 }

@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/constants/constants.dart';
 import '../../core/errors/errors.dart';
 import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
@@ -124,7 +122,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
       final subject = groupName.isEmpty
           ? 'splitBills 그룹 초대'
           : 'splitBills: $groupName 초대';
-      await Share.share(inviteLink, subject: subject);
+      await ShareHelper.shareLink(inviteLink, subject: subject);
     } catch (error, stackTrace) {
       debugPrint('초대 링크 공유 실패: $error');
       debugPrint('스택 트레이스: $stackTrace');
@@ -488,7 +486,7 @@ class _ExpensesByDate extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: sorted.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (context, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final expense = sorted[index];
         final description = (expense.description?.trim().isNotEmpty ?? false)
@@ -549,7 +547,7 @@ class _ExpensesByUser extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: entries.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (context, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final entry = entries[index];
         final name = _resolveUserNameFromLookup(entry.key, memberLookup);

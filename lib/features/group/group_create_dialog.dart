@@ -93,7 +93,7 @@ class _GroupCreateDialogState extends ConsumerState<GroupCreateDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedCurrency,
+              initialValue: _selectedCurrency,
               items: CurrencyConstants.supportedCurrencies
                   .map(
                     (currency) => DropdownMenuItem(

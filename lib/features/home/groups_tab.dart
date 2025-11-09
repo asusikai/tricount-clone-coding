@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/constants.dart';
+import '../../core/errors/errors.dart';
 import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
@@ -158,7 +158,7 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
       final shareSubject = groupName.isEmpty
           ? 'splitBills 그룹 초대'
           : 'splitBills: $groupName 초대';
-      await Share.share(inviteLink, subject: shareSubject);
+      await ShareHelper.shareLink(inviteLink, subject: shareSubject);
     } catch (error, stackTrace) {
       debugPrint('초대 링크 공유 실패: $error\n$stackTrace');
       if (mounted) {
