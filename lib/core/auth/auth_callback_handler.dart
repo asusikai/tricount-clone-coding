@@ -161,7 +161,7 @@ class AuthCallbackHandler {
 
   /// 지원되는 인증 콜백 URI 여부 확인
   bool isSupportedAuthCallback(Uri uri) {
-    if (uri.scheme != 'splitbills' || uri.host != 'auth') {
+    if (!_isSupportedScheme(uri.scheme) || uri.host != 'auth') {
       return false;
     }
 
@@ -171,5 +171,10 @@ class AuthCallbackHandler {
 
     return provider != null &&
         const {'kakao', 'google', 'apple'}.contains(provider.toLowerCase());
+  }
+
+  bool _isSupportedScheme(String scheme) {
+    final normalized = scheme.toLowerCase();
+    return normalized == 'splitbills' || normalized == 'tricount';
   }
 }
