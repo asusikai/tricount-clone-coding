@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
+import 'request_page.dart';
 
 class RequestsTab extends ConsumerStatefulWidget {
   const RequestsTab({super.key});
@@ -180,8 +180,10 @@ class _RequestListView extends ConsumerWidget {
                     ],
                   ),
                   onTap: () async {
-                    final result = await context.push<bool>(
-                      '/requests/${settlement.id}',
+                    final result = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(
+                        builder: (_) => RequestPage(requestId: settlement.id),
+                      ),
                     );
                     if (result == true) {
                       await onRefresh();

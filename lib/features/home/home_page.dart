@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../core/constants/constants.dart';
 import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
@@ -10,6 +7,7 @@ import '../group/group_create_dialog.dart';
 import 'groups_tab.dart';
 import '../profile/profile_page.dart';
 import '../requests/request_list_tab.dart';
+import '../requests/request_register_page.dart';
 
 enum HomeTab { groups, requests, profile }
 
@@ -101,6 +99,16 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
   }
 
+  Future<T?> _pushOnTab<T>(HomeTab tab, WidgetBuilder builder) {
+    final navigator = _navigatorKeys[tab.index].currentState;
+    if (navigator == null) {
+      return Future<T?>.value(null);
+    }
+    return navigator.push<T>(
+      MaterialPageRoute(builder: builder),
+    );
+  }
+
   FloatingActionButton? _buildFab(BuildContext context) {
     switch (_currentTab) {
       case HomeTab.groups:
@@ -119,11 +127,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       case HomeTab.requests:
         return FloatingActionButton(
           onPressed: () async {
-            final shouldRefresh =
-                await context.push<bool>(RouteConstants.requestRegister);
-            if (!mounted) {
-              return;
-            }
+            final shouldRefresh = await _pushOnTab<bool>(
+              HomeTab.requests,
+              (_) => const RequestRegisterPage(),
+            );
             if (shouldRefresh == true) {
               ref.invalidate(requestListProvider(null));
               for (final status in SettlementStatus.values) {

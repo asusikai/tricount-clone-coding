@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/constants/constants.dart';
@@ -11,6 +10,7 @@ import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
+import '../group/group_page.dart';
 
 class GroupsTab extends ConsumerStatefulWidget {
   const GroupsTab({super.key});
@@ -140,7 +140,14 @@ class _GroupsTabState extends ConsumerState<GroupsTab>
             onTap: groupId.isEmpty
                 ? null
                 : () {
-                    context.go(RouteConstants.groupDetail(groupId));
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => GroupPage(groupId: groupId),
+                        settings: RouteSettings(
+                          name: RouteConstants.groupDetail(groupId),
+                        ),
+                      ),
+                    );
                   },
           ),
         );
