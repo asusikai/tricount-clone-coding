@@ -31,7 +31,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="tricount" android:host="auth" android:path="/google" />
+                <data android:scheme="splitbills" android:host="auth" android:path="/google" />
             </intent-filter>
 
             <!-- ✅ Apple OAuth Redirect -->
@@ -39,7 +39,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="tricount" android:host="auth" android:path="/apple" />
+                <data android:scheme="splitbills" android:host="auth" android:path="/apple" />
             </intent-filter>
 
             <!-- ✅ Kakao OAuth Redirect -->
@@ -47,7 +47,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="tricount" android:host="auth" android:path="/kakao" />
+                <data android:scheme="splitbills" android:host="auth" android:path="/kakao" />
             </intent-filter>
 
             <!-- Deep link for custom scheme (Supabase) -->

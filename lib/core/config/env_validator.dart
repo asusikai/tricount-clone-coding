@@ -41,8 +41,8 @@ class EnvValidator {
         if (!uri.hasScheme) {
           issues.add('SUPABASE_REDIRECT_URI에 스킴이 없습니다.');
         }
-        // 예상되는 스킴: tricount://auth 또는 splitbills://auth
-        final expectedSchemes = ['tricount', 'splitbills'];
+        // 예상되는 스킴: splitbills://auth
+        final expectedSchemes = ['splitbills'];
         if (!expectedSchemes.contains(uri.scheme.toLowerCase())) {
           issues.add(
             'SUPABASE_REDIRECT_URI 스킴이 예상과 다릅니다. '
@@ -80,7 +80,7 @@ class EnvValidator {
       final host = uri.host.toLowerCase();
 
       // 예상되는 스킴과 호스트
-      final expectedScheme = scheme; // tricount 또는 splitbills
+      final expectedScheme = scheme; // splitbills
       final expectedHost = host; // auth
 
       final androidGuide =

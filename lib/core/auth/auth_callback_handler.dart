@@ -161,7 +161,7 @@ class AuthCallbackHandler {
 
   /// 지원되는 인증 콜백 URI 여부 확인
   bool isSupportedAuthCallback(Uri uri) {
-    if (uri.scheme != 'tricount' || uri.host != 'auth') {
+    if (uri.scheme != 'splitbills' || uri.host != 'auth') {
       return false;
     }
 

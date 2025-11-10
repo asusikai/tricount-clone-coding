@@ -57,15 +57,7 @@
       </dict>
       <dict>
         <key>CFBundleURLName</key>
-        <string>tricount-auth</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>tricount</string>
-        </array>
-      </dict>
-      <dict>
-        <key>CFBundleURLName</key>
-        <string>splitbills-invite</string>
+        <string>splitbills-auth</string>
         <key>CFBundleURLSchemes</key>
         <array>
           <string>splitbills</string>

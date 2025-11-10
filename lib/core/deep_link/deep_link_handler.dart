@@ -106,28 +106,15 @@ class DeepLinkHandler {
   /// 그룹 초대 URI 여부 확인
   bool isGroupInviteUri(Uri uri) {
     final scheme = uri.scheme.toLowerCase();
-    if (scheme == 'splitbills') {
-      if (uri.host.toLowerCase() == 'invite') {
-        return true;
-      }
-      return uri.pathSegments.isNotEmpty &&
-          uri.pathSegments.first.toLowerCase() == 'invite';
+    if (scheme != 'splitbills') {
+      return false;
     }
 
-    if (scheme == 'tricount') {
-      final host = uri.host.toLowerCase();
-      if (host == 'invite') {
-        return true;
-      }
-      if (host == 'group') {
-        return uri.pathSegments.isNotEmpty &&
-            uri.pathSegments.first.toLowerCase() == 'join';
-      }
-      return uri.pathSegments.isNotEmpty &&
-          uri.pathSegments.first.toLowerCase() == 'invite';
+    if (uri.host.toLowerCase() == 'invite') {
+      return true;
     }
-
-    return false;
+    return uri.pathSegments.isNotEmpty &&
+        uri.pathSegments.first.toLowerCase() == 'invite';
   }
 
   /// 초대 코드 파싱
@@ -142,58 +129,26 @@ class DeepLinkHandler {
         .where((segment) => segment.trim().isNotEmpty)
         .toList();
 
-    if (scheme == 'splitbills') {
-      // splitbills://invite/<code>
-      if (uri.host.toLowerCase() == 'invite') {
-        if (segments.isEmpty) {
-          return null;
-        }
-        final candidate = segments.first.trim();
-        return candidate.isNotEmpty ? candidate : null;
-      }
-
-      // splitbills://invite/<code> (경로 기반)
-      if (segments.isNotEmpty && segments.first.toLowerCase() == 'invite') {
-        if (segments.length < 2) {
-          return null;
-        }
-        final candidate = segments[1].trim();
-        return candidate.isNotEmpty ? candidate : null;
-      }
+    if (scheme != 'splitbills') {
+      return null;
     }
 
-    if (scheme == 'tricount') {
-      if (uri.host.toLowerCase() == 'invite') {
-        if (segments.isEmpty) {
-          return null;
-        }
-        final candidate = segments.first.trim();
-        if (candidate.isNotEmpty) {
-          return candidate;
-        }
+    // splitbills://invite/<code>
+    if (uri.host.toLowerCase() == 'invite') {
+      if (segments.isEmpty) {
+        return null;
       }
+      final candidate = segments.first.trim();
+      return candidate.isNotEmpty ? candidate : null;
+    }
 
-      if (segments.length >= 2 && segments.first.toLowerCase() == 'invite') {
-        final candidate = segments[1].trim();
-        if (candidate.isNotEmpty) {
-          return candidate;
-        }
+    // splitbills://invite/<code> (경로 기반)
+    if (segments.isNotEmpty && segments.first.toLowerCase() == 'invite') {
+      if (segments.length < 2) {
+        return null;
       }
-
-      if (uri.host.toLowerCase() == 'group') {
-        if (segments.length >= 2) {
-          final candidate = segments[1].trim();
-          if (candidate.isNotEmpty && candidate.toLowerCase() != 'join') {
-            return candidate;
-          }
-        }
-        if (segments.isNotEmpty) {
-          final fallback = segments.last.trim();
-          if (fallback.isNotEmpty && fallback.toLowerCase() != 'join') {
-            return fallback;
-          }
-        }
-      }
+      final candidate = segments[1].trim();
+      return candidate.isNotEmpty ? candidate : null;
     }
 
     return null;
