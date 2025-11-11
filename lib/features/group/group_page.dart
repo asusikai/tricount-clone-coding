@@ -10,8 +10,11 @@ import '../../core/utils/utils.dart';
 import '../../domain/models/models.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/common/common_widgets.dart';
+import 'group_edit_dialog.dart';
 
 enum _ExpenseTab { byDate, byUser }
+
+enum _GroupMenuAction { edit, delete }
 
 class GroupPage extends ConsumerStatefulWidget {
   const GroupPage({super.key, required this.groupId});
@@ -31,6 +34,29 @@ class _GroupPageState extends ConsumerState<GroupPage> {
     final membersAsync = ref.watch(groupMembersProvider(widget.groupId));
     final expensesAsync = ref.watch(groupExpensesProvider(widget.groupId));
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final manageMenu = detailAsync.maybeWhen<Widget?>(
+      data: (detail) {
+        if (currentUserId == null || detail.ownerId != currentUserId) {
+          return null;
+        }
+        return PopupMenuButton<_GroupMenuAction>(
+          tooltip: '그룹 관리',
+          icon: const Icon(Icons.more_vert),
+          onSelected: (action) => _handleMenuAction(action, detail),
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: _GroupMenuAction.edit,
+              child: Text('그룹 정보 수정'),
+            ),
+            PopupMenuItem(
+              value: _GroupMenuAction.delete,
+              child: Text('그룹 삭제'),
+            ),
+          ],
+        );
+      },
+      orElse: () => null,
+    );
 
     VoidCallback? shareAction = detailAsync.maybeWhen(
       data: (detail) => () {
@@ -56,6 +82,7 @@ class _GroupPageState extends ConsumerState<GroupPage> {
             onPressed: shareAction,
             icon: const Icon(Icons.ios_share),
           ),
+          if (manageMenu != null) manageMenu,
         ],
       ),
       body: detailAsync.when(
@@ -107,6 +134,86 @@ class _GroupPageState extends ConsumerState<GroupPage> {
       ref.refresh(groupMembersProvider(widget.groupId).future),
       ref.refresh(groupExpensesProvider(widget.groupId).future),
     ]);
+  }
+
+  Future<void> _handleMenuAction(
+    _GroupMenuAction action,
+    GroupDto detail,
+  ) async {
+    switch (action) {
+      case _GroupMenuAction.edit:
+        await _handleGroupEdit(detail);
+        break;
+      case _GroupMenuAction.delete:
+        await _handleGroupDelete(detail);
+        break;
+    }
+  }
+
+  Future<void> _handleGroupEdit(GroupDto detail) async {
+    final didUpdate = await showGroupEditDialog(
+      context,
+      group: detail,
+    );
+    if (didUpdate == true) {
+      await _refresh(ref);
+      if (!mounted) {
+        return;
+      }
+      SnackBarHelper.showSuccess(context, '그룹 정보가 수정되었습니다.');
+    }
+  }
+
+  Future<void> _handleGroupDelete(GroupDto detail) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final name = detail.name.trim();
+        return AlertDialog(
+          title: const Text('그룹 삭제'),
+          content: Text(
+            name.isEmpty
+                ? '이 그룹을 삭제하시겠어요? 삭제 후에는 되돌릴 수 없습니다.'
+                : '"$name" 그룹을 삭제하시겠어요? 삭제 후에는 되돌릴 수 없습니다.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true) {
+      return;
+    }
+
+    final controller = ref.read(groupListControllerProvider.notifier);
+    final result = await controller.deleteGroup(detail.id);
+    if (!mounted) {
+      return;
+    }
+
+    result.fold(
+      onSuccess: (_) {
+        SnackBarHelper.showSuccess(context, '그룹이 삭제되었습니다.');
+        Navigator.of(context).pop();
+      },
+      onFailure: (error) {
+        SnackBarHelper.showError(
+          context,
+          '그룹 삭제 실패: ${error.message}',
+        );
+      },
+    );
   }
 
   Future<void> _shareInvite(

@@ -14,6 +14,12 @@ abstract class GroupsRepository {
     required String baseCurrency,
   });
 
+  ResultFuture<GroupDto> update({
+    required String groupId,
+    required String name,
+    required String baseCurrency,
+  });
+
   ResultFuture<GroupDto> joinByInvite({
     required String inviteCode,
     required String userId,
