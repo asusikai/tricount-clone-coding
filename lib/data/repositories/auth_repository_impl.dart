@@ -75,6 +75,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signInWithProvider(OAuthProvider provider) async {
     final redirectUri = _buildRedirectUri(provider);
+    debugPrint('OAuth Redirect URI: $redirectUri (Provider: ${provider.name})');
 
     try {
       // 이전 로그인 시도가 있었는지 확인
@@ -105,9 +106,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // signInWithOAuth는 Future<bool>을 반환합니다
       // PKCE 플로우 상태는 Supabase SDK가 자동으로 관리합니다
+      debugPrint('Calling signInWithOAuth with redirectTo: $redirectUri');
       final success = await _client.auth.signInWithOAuth(
         provider,
         redirectTo: redirectUri,
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
 
       if (!success) {

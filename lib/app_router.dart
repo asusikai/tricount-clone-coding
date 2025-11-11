@@ -46,9 +46,5 @@ final appRouter = GoRouter(
         return RequestPage(requestId: requestId);
       },
     ),
-
-    GoRoute(path: RouteConstants.authKakao, builder: (_, _) => const SplashPage()),
-    GoRoute(path: RouteConstants.authGoogle, builder: (_, _) => const SplashPage()),
-    GoRoute(path: RouteConstants.authApple, builder: (_, _) => const SplashPage()),
   ],
 );

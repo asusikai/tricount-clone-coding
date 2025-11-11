@@ -52,7 +52,7 @@
         <string>supabase-login</string>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>io.supabase.tricount</string>
+          <string>io.supabase.splitbills</string>
         </array>
       </dict>
       <dict>

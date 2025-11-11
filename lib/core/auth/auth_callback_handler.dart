@@ -42,9 +42,30 @@ class AuthCallbackHandler {
     _handledAuthUris.add(rawUri);
 
     // Provider 추출
-    final provider = uri.pathSegments.isNotEmpty
-        ? uri.pathSegments.last
-        : uri.queryParameters['provider'] ?? 'unknown';
+    // splitbills://auth/{provider} 형태인 경우 path에서 추출
+    // io.supabase.splitbills://login-callback 형태인 경우 query parameter에서 추출
+    String provider;
+    if (uri.scheme.toLowerCase() == 'io.supabase.splitbills') {
+      provider = uri.queryParameters['provider'] ?? 
+                 uri.queryParameters['type'] ?? 
+                 'unknown';
+    } else {
+      provider = uri.pathSegments.isNotEmpty
+          ? uri.pathSegments.last
+          : uri.queryParameters['provider'] ?? 'unknown';
+    }
+
+    // 이미 세션이 있는지 확인 (콜백이 늦게 도착한 경우)
+    final existingSession = client.auth.currentSession;
+    if (existingSession != null) {
+      debugPrint('이미 세션이 존재합니다. 콜백 처리를 건너뜁니다. (세션: ${existingSession.user.id})');
+      // 세션이 이미 있으면 성공 처리로 간주
+      AuthService.clearSignInAttemptTime();
+      AuthService.clearAuthError();
+      AuthService.clearFlowState(provider);
+      await _processSuccessfulLogin(client);
+      return;
+    }
 
     // PKCE 플로우 상태 보강
     final enhancedUri = AuthService.prepareCallbackUri(uri, provider);
@@ -96,6 +117,18 @@ class AuthCallbackHandler {
             debugPrint('재시도 ${i + 1}번: ${delayMs}ms 대기 후 시도');
             await Future.delayed(Duration(milliseconds: delayMs));
 
+            // 재시도 전에 세션 확인
+            final retrySession = client.auth.currentSession;
+            if (retrySession != null) {
+              debugPrint('재시도 중 세션 발견: ${retrySession.user.id}');
+              AuthService.clearSignInAttemptTime();
+              AuthService.clearAuthError();
+              AuthService.clearFlowState(provider);
+              await _processSuccessfulLogin(client);
+              retrySuccess = true;
+              break;
+            }
+
             await client.auth.getSessionFromUrl(enhancedUri);
             debugPrint('재시도 성공 (시도 ${i + 1}번)');
             AuthService.clearSignInAttemptTime();
@@ -106,6 +139,18 @@ class AuthCallbackHandler {
             break;
           } catch (retryError) {
             debugPrint('재시도 ${i + 1}번 실패: $retryError');
+            
+            // 재시도 실패 후에도 세션 확인
+            final retrySession = client.auth.currentSession;
+            if (retrySession != null) {
+              debugPrint('재시도 실패했지만 세션이 존재합니다: ${retrySession.user.id}');
+              AuthService.clearSignInAttemptTime();
+              AuthService.clearAuthError();
+              AuthService.clearFlowState(provider);
+              await _processSuccessfulLogin(client);
+              retrySuccess = true;
+              break;
+            }
           }
         }
 
@@ -156,12 +201,20 @@ class AuthCallbackHandler {
 
     // 성공적으로 로그인되었으므로 홈으로 이동
     debugPrint('홈으로 이동 시도');
-    onNavigate('/groups');
+    onNavigate('/home');
   }
 
   /// 지원되는 인증 콜백 URI 여부 확인
   bool isSupportedAuthCallback(Uri uri) {
-    if (!_isSupportedScheme(uri.scheme) || uri.host != 'auth') {
+    final scheme = uri.scheme.toLowerCase();
+    
+    // Supabase 기본 콜백 URI 처리 (io.supabase.splitbills://login-callback)
+    if (scheme == 'io.supabase.splitbills' && uri.host == 'login-callback') {
+      return true;
+    }
+    
+    // Provider별 OAuth 콜백 URI 처리 (splitbills://auth/{provider})
+    if (!_isSupportedScheme(scheme) || uri.host != 'auth') {
       return false;
     }
 

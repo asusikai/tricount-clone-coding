@@ -443,6 +443,14 @@ class _MyAppState extends State<MyApp> {
     _authStateSubscription = client.auth.onAuthStateChange.listen(
       (AuthState state) {
         debugPrint('인증 상태 변경: ${state.event}');
+        
+        // 세션 정보 로깅
+        final session = state.session;
+        if (session != null) {
+          debugPrint('세션 존재: expiresAt=${session.expiresAt}, expiresIn=${session.expiresIn}');
+        } else {
+          debugPrint('세션 없음');
+        }
 
         if (!mounted) return;
 
@@ -451,6 +459,7 @@ class _MyAppState extends State<MyApp> {
 
         final isUserDeleted = state.event.name == 'userDeleted';
         if (isUserDeleted) {
+          debugPrint('사용자 삭제 이벤트 감지');
           AuthStateManager.clearStateOnUserDeleted(null);
         }
 
@@ -460,30 +469,35 @@ class _MyAppState extends State<MyApp> {
         switch (normalizedEvent) {
           case AuthChangeEvent.initialSession:
             // 초기 세션 로드 시는 SplashPage에서 처리하므로 무시
+            debugPrint('초기 세션 로드 (SplashPage에서 처리)');
             break;
           case AuthChangeEvent.signedIn:
             // 로그인 성공 시 홈으로 이동 (SplashPage가 아닌 경우)
+            debugPrint('로그인 성공: 현재 위치=$currentLocation');
             if (currentLocation != RouteConstants.splash) {
               _safeNavigate(RouteConstants.home);
             }
             break;
           case AuthChangeEvent.signedOut:
             // 로그아웃 시 앱 상태 초기화 및 인증 페이지로 이동
+            debugPrint('로그아웃 이벤트: 현재 위치=$currentLocation');
             _handleSignOut(currentLocation);
             break;
           case AuthChangeEvent.tokenRefreshed:
             // 토큰 갱신 시 라우터만 리프레시 (현재 위치 유지)
-            debugPrint('토큰 갱신 완료');
+            debugPrint('토큰 갱신 완료: expiresAt=${session?.expiresAt}');
             appRouter.refresh();
             break;
           case AuthChangeEvent.passwordRecovery:
           case AuthChangeEvent.userUpdated:
           case AuthChangeEvent.mfaChallengeVerified:
             // 기타 이벤트는 라우터만 리프레시
+            debugPrint('기타 인증 이벤트: ${normalizedEvent.name}');
             appRouter.refresh();
             break;
           case AuthChangeEvent.userDeleted:
             // 이미 normalizedEvent가 userDeleted 인 경우 (정상 경로)
+            debugPrint('사용자 삭제 처리');
             _handleSignOut(currentLocation);
             break;
         }

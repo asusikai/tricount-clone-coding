@@ -15,9 +15,4 @@ class RouteConstants {
   // 요청 관련
   static const String requestRegister = '/requests/register';
   static String requestDetail(String id) => '/requests/$id';
-
-  // OAuth 콜백
-  static const String authKakao = '/auth/kakao';
-  static const String authGoogle = '/auth/google';
-  static const String authApple = '/auth/apple';
 }
