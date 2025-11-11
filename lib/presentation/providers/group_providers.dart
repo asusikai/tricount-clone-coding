@@ -107,6 +107,50 @@ class GroupListController extends AsyncNotifier<List<GroupDto>> {
       },
     );
   }
+
+  Future<Result<GroupDto>> updateGroup({
+    required String groupId,
+    required String name,
+    required String baseCurrency,
+  }) async {
+    final result = await ref.read(groupsRepositoryProvider).update(
+          groupId: groupId,
+          name: name,
+          baseCurrency: baseCurrency,
+        );
+    return result.fold(
+      onSuccess: (group) {
+        _lastFetched = DateTime.now();
+        state = state.whenData((groups) {
+          final index = groups.indexWhere((item) => item.id == groupId);
+          if (index == -1) {
+            return groups;
+          }
+          final updated = List<GroupDto>.from(groups);
+          updated[index] = group;
+          return updated;
+        });
+        return Success(group);
+      },
+      onFailure: (error) => Failure(error),
+    );
+  }
+
+  Future<Result<void>> deleteGroup(String groupId) async {
+    final result = await ref.read(groupsRepositoryProvider).delete(groupId);
+    return result.fold(
+      onSuccess: (_) {
+        _lastFetched = DateTime.now();
+        state = state.whenData(
+          (groups) => groups
+              .where((group) => group.id != groupId)
+              .toList(growable: false),
+        );
+        return const Success<void>(null);
+      },
+      onFailure: (error) => Failure(error),
+    );
+  }
 }
 
 final groupListControllerProvider =

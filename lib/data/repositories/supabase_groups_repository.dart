@@ -102,6 +102,34 @@ class SupabaseGroupsRepository implements GroupsRepository {
   }
 
   @override
+  ResultFuture<GroupDto> update({
+    required String groupId,
+    required String name,
+    required String baseCurrency,
+  }) {
+    return ErrorHandler.guardAsync(
+      () async {
+        final payload = {
+          'name': name,
+          'base_currency': baseCurrency,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        };
+        final response = await _client
+            .from('groups')
+            .update(payload)
+            .eq('id', groupId)
+            .select()
+            .maybeSingle();
+        if (response == null) {
+          throw const NotFoundException('그룹을 찾을 수 없습니다.');
+        }
+        return GroupDto.fromJson(mapRow(response));
+      },
+      context: '그룹 정보 수정 실패',
+    );
+  }
+
+  @override
   ResultFuture<GroupDto> joinByInvite({
     required String inviteCode,
     required String userId,
