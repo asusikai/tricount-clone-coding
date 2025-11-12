@@ -60,10 +60,11 @@ class DeepLinkHandler {
       }
 
       // 지원하지 않는 링크
-      if (uri.scheme.toLowerCase() == 'splitbills') {
+      final scheme = uri.scheme.toLowerCase();
+      if (scheme == 'splitbills' || scheme == 'https') {
         onShowError(
           '지원하지 않는 링크입니다. 홈으로 이동합니다.',
-          error: StateError('Unsupported splitbills link: $uri'),
+          error: StateError('Unsupported link: $uri'),
         );
       }
     } on FormatException catch (error, stackTrace) {
@@ -83,7 +84,25 @@ class DeepLinkHandler {
 
   /// 홈 탭 URI 파싱
   HomeTab? maybeParseHomeTabUri(Uri uri) {
-    if (uri.scheme.toLowerCase() != 'splitbills') {
+    final scheme = uri.scheme.toLowerCase();
+
+    // https 스킴 지원
+    if (scheme == 'https') {
+      final candidates = <String?>[
+        uri.queryParameters['tab'],
+        if (uri.pathSegments.isNotEmpty) uri.pathSegments.first,
+      ];
+
+      for (final candidate in candidates) {
+        final tab = HomeTabX.maybeFromName(candidate);
+        if (tab != null) {
+          return tab;
+        }
+      }
+      return null;
+    }
+
+    if (scheme != 'splitbills') {
       return null;
     }
 
@@ -106,6 +125,20 @@ class DeepLinkHandler {
   /// 그룹 초대 URI 여부 확인
   bool isGroupInviteUri(Uri uri) {
     final scheme = uri.scheme.toLowerCase();
+
+    // https 스킴 지원 (App Links / Universal Links)
+    if (scheme == 'https') {
+      final path = uri.path.toLowerCase();
+      if (path.startsWith('/invite') || path.startsWith('/group/join')) {
+        return true;
+      }
+      // 쿼리 파라미터로 초대 코드가 있는 경우
+      if (uri.queryParameters.containsKey('code') ||
+          uri.queryParameters.containsKey('invite')) {
+        return true;
+      }
+    }
+
     if (scheme == 'splitbills') {
       if (uri.host.toLowerCase() == 'invite') {
         return true;
@@ -133,7 +166,11 @@ class DeepLinkHandler {
   /// 초대 코드 파싱
   String? parseInviteCode(Uri uri) {
     final scheme = uri.scheme.toLowerCase();
-    final queryCode = uri.queryParameters['code']?.trim();
+
+    // 쿼리 파라미터에서 초대 코드 추출 (우선순위 1)
+    final queryCode =
+        uri.queryParameters['code']?.trim() ??
+        uri.queryParameters['invite']?.trim();
     if (queryCode != null && queryCode.isNotEmpty) {
       return queryCode;
     }
@@ -141,6 +178,29 @@ class DeepLinkHandler {
     final segments = uri.pathSegments
         .where((segment) => segment.trim().isNotEmpty)
         .toList();
+
+    // https 스킴 지원 (App Links / Universal Links)
+    if (scheme == 'https') {
+      // https://yourdomain.com/invite/<code>
+      if (segments.isNotEmpty && segments.first.toLowerCase() == 'invite') {
+        if (segments.length >= 2) {
+          final candidate = segments[1].trim();
+          if (candidate.isNotEmpty) {
+            return candidate;
+          }
+        }
+      }
+      // https://yourdomain.com/group/join/<code>
+      if (segments.length >= 3 &&
+          segments[0].toLowerCase() == 'group' &&
+          segments[1].toLowerCase() == 'join') {
+        final candidate = segments[2].trim();
+        if (candidate.isNotEmpty) {
+          return candidate;
+        }
+      }
+      // https://yourdomain.com/invite?code=<code> 형태는 이미 쿼리 파라미터에서 처리됨
+    }
 
     if (scheme == 'splitbills') {
       // splitbills://invite/<code>

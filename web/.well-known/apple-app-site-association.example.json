@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.io.splitbills.app",
+        "paths": [
+          "/invite/*",
+          "/group/join/*"
+        ]
+      }
+    ]
+  }
+}
+

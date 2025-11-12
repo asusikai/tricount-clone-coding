@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>앱 설치 안내</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: scale(1.05);
+        }
+        .button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>앱 설치가 필요합니다</h1>
+        <p>이 링크를 사용하려면 앱을 설치해주세요.</p>
+        <a href="#" id="installButton" class="button">앱 설치하기</a>
+    </div>
+
+    <script>
+        // 플랫폼 감지
+        function detectPlatform() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            
+            return 'unknown';
+        }
+
+        // 스토어 URL 설정
+        const storeUrls = {
+            android: 'https://play.google.com/store/apps/details?id=io.splitbills.app',
+            ios: 'https://apps.apple.com/app/id1234567890', // TODO: 실제 App Store ID로 변경
+            unknown: 'https://play.google.com/store/apps/details?id=io.splitbills.app'
+        };
+
+        // 앱 설치 버튼 클릭 이벤트
+        document.getElementById('installButton').addEventListener('click', function(e) {
+            e.preventDefault();
+            const platform = detectPlatform();
+            const storeUrl = storeUrls[platform] || storeUrls.unknown;
+            window.location.href = storeUrl;
+        });
+
+        // 앱이 설치되어 있는지 확인 (유니버설 링크/앱 링크)
+        // 앱이 설치되어 있으면 자동으로 앱이 열리므로 이 페이지는 표시되지 않습니다.
+        // 이 페이지는 앱이 설치되어 있지 않을 때만 표시됩니다.
+        
+        // 딥링크 파라미터 추출 (선택사항)
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteCode = urlParams.get('code') || urlParams.get('invite');
+        
+        if (inviteCode) {
+            // 초대 코드가 있으면 스토어 URL에 파라미터로 추가
+            const platform = detectPlatform();
+            const storeUrl = storeUrls[platform] || storeUrls.unknown;
+            const urlWithParams = `${storeUrl}&referrer=invite_${inviteCode}`;
+            document.getElementById('installButton').href = urlWithParams;
+        }
+    </script>
+</body>
+</html>
+
